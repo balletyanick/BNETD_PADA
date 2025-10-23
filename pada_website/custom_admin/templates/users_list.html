@@ -1,0 +1,168 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Panneautage - Utilisateurs{% endblock %}
+
+{% block content %}
+                <div class="row pt-4">
+                    <div class="col-md-6 d-flex align-items-center pt-1">
+                        <h5 class="fw-bold">Gestion des utilisateurs</h5>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-warning text-white" id="addUtilisateur">
+                            <i class="bi bi-plus-circle me-2"></i>Ajouter un utilisateur
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row my-4">
+                    <div class="col-md-4">
+                        <form method="get" class="d-flex">
+                            <input type="text" class="form-control" name="q" value="{{ query|default:'' }}" placeholder="Rechercher un utilisateur ..." id="search">
+                            <button type="submit" class="btn ms-2" id="bouttonSerach">
+                                <span style="color: white; font-weight: 600;"> Recherche </span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TABLE CONTAINER -->
+                <div class="table-container">
+                    <!-- TABLE HEADER -->
+                    <div class="row table-header">
+                        <div class="col-1">
+                            <div class="table-cell text-start">
+                                N°
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="table-cell">
+                                Nom D'utilisateur
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="table-cell">
+                               Email
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="table-cell">
+                                Dernière Connexion
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="table-cell">
+                                Date de Création
+                            </div>
+                        </div>
+                        <div class="col-1">
+                            <div class="table-cell text-end">
+                                Actions
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABLE LIGNE -->
+                    {% for user in page_obj %}
+                    <div class="row table-row">
+                        <div class="col-1">
+                            <div class="table-cell text-start">
+                                {{ forloop.counter }}
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="table-cell">
+                               {{ user.username }} 
+                               {% comment %} {{ user.is_superuser }} {% endcomment %}
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="table-cell">
+                                {{ user.email }}
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="table-cell">
+                                {{ user.last_login|date:"d/m/Y" }}
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="table-cell">
+                                {{ user.date_joined|date:"d/m/Y" }}
+                            </div>
+                        </div>
+                        <div class="col-1">
+                            <div class="table-cell text-end">
+                                <button class="action-btn edit-btn">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="action-btn delete-btn">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                               
+                            </div>
+                        </div>
+                    </div>
+                     {% comment %} {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">Aucun utilisateur trouvé</td>
+                    </tr> {% endcomment %}
+                    {% endfor %}
+                </div>
+
+                <!-- PAGINATION -->
+                 <div class="pagination-container d-flex justify-content-center mt-4">
+                    <nav>
+                        <ul class="pagination">
+
+                            <!-- Bouton premier -->
+                            {% if page_obj.number > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">««</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">««</span></li>
+                            {% endif %}
+
+                            <!-- Bouton précédent -->
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">«</span></li>
+                            {% endif %}
+
+                            <!-- Pages autour de la page actuelle -->
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num == page_obj.number %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Bouton suivant -->
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">»</span></li>
+                            {% endif %}
+
+                            <!-- Bouton dernier -->
+                            {% if page_obj.number < page_obj.paginator.num_pages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">»»</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">»»</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+{% endblock %}

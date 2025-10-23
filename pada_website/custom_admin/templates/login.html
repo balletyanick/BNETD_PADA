@@ -1,0 +1,408 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> ADMIN BNETD - Panneautage </title>
+    <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<style>
+    body {
+        font-family: 'Roboto', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #FFF2E6 0%, #FFE5CC 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid #e8e9ea;
+   
+    }
+
+    .login-header {
+        background-color: #FFF2E6;
+        padding: 25px 30px 15px 30px;
+        text-align: center;
+        border-bottom: 1px solid #e8e9ea;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .logo-icon {
+        width: 90px;
+        height: 90px;
+        background-color: #FFF;
+        border-radius: 10px;
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .logo-inner {
+        width: 36px;
+        height: 36px;
+        background-color: white;
+        border-radius: 4px;
+    }
+
+    .company-name {
+        font-weight: 600;
+        color: #454444ff;
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .login-title {
+        color: #333;
+        font-size: 24px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+        color: #666;
+        font-size: 14px;
+        font-weight: 400;
+    }
+
+    .login-body {
+        padding: 30px 30px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 14px;
+        border: 1px solid #e8e9ea;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        transition: all 0.2s ease;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    #id_username {
+        background-color: #f8f9fa;
+        border: 1px solid #e8e9ea;
+        border-radius: 8px;
+        width: 100%;
+        height: 50px;
+        padding-inline-start: 15px;
+        font-size: 12px;
+        margin-top: 7px;
+    }
+
+    #id_password 
+    {
+        background-color: #f8f9fa;
+        border: 1px solid #e8e9ea;
+        border-radius: 8px;
+        width: 100%;
+        height: 50px;
+        padding-inline-start: 15px;
+        font-size: 12px;
+        margin-top: 7px;
+    }
+
+    label {
+        display: inline-block;
+        font-weight: 500;
+    }
+
+    #id_password:focus {
+        outline: none;
+        background-color: white;
+        border-color: #FF7900;
+        box-shadow: 0 0 0 3px rgba(255, 121, 0, 0.1);
+    }
+
+    #id_username:focus {
+        outline: none;
+        background-color: white;
+        border-color: #FF7900;
+        box-shadow: 0 0 0 3px rgba(255, 121, 0, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #aaa;
+    }
+
+    .form-control:focus {
+        outline: none;
+        background-color: white;
+        border-color: #FF7900;
+        box-shadow: 0 0 0 3px rgba(255, 121, 0, 0.1);
+    }
+
+    .password-field {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 16px;
+        font-size: 16px;
+        font-weight: 600;
+        background-color: #FF7900;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        transition: background-color 0.2s ease;
+        letter-spacing: 0.5px;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
+
+    .login-btn:hover {
+        background-color: #e66d00;
+    }
+
+    .login-btn:active {
+        transform: translateY(1px);
+    }
+
+    .forgot-password {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .forgot-password a {
+        color: #FF7900;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .forgot-password a:hover {
+        color: #e66d00;
+        text-decoration: underline;
+    }
+
+    .divider {
+        text-align: center;
+        margin: 25px 0;
+        position: relative;
+        color: #999;
+        font-size: 13px;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e8e9ea;
+        z-index: 1;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 15px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        font-size: 14px;
+    }
+
+    .remember-me input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+        accent-color: #FF7900;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+    }
+
+    .alert-danger {
+        background-color: #ffebee;
+        border-color: #f44336;
+        color: #d32f2f;
+    }
+
+    .loading {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .loading .login-btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .loading .login-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid transparent;
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .editable:empty::before {
+    content: "Écris ici...";
+    color: #999;
+    pointer-events: none;
+    }
+
+    /* Style du message d'érreur*/
+    .errorlist.nonfield {
+        font-size: 12px;
+        text-align: justify;
+        background-color: rgba(213, 10, 10, 0.8);
+        color: white;
+        padding-inline-end: 20px;
+        padding-bottom: 10px;
+        padding-top: 10px;
+        border-radius: 8px;
+    }
+
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .login-container {
+            margin: 20px;
+            max-width: none;
+        }
+        
+        .login-header {
+            padding: 30px 20px 20px 20px;
+        }
+        
+        .login-body {
+            padding: 30px 20px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            margin-right: 12px;
+        }
+        
+        .logo-inner {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .company-name {
+            font-size: 16px;
+        }
+        
+        .login-title {
+            font-size: 22px;
+        }
+    }
+</style>
+
+<body>
+    <div class="login-container">
+        <!-- Header -->
+        <div class="login-header">
+            <div class="logo">
+                <div class="logo-icon">
+                       <img src="{% static 'image/BD_ADRESSAGE.png' %}" alt="Logo" style="height:80px;">
+                </div>
+            </div>
+            <h1 class="login-title">Connexion</h1>
+            <p class="login-subtitle">Accédez à votre panneau d'administration</p>
+        </div>
+
+        <!-- Body -->
+        <div class="login-body">
+            <form id="loginForm" method="post" >
+                <!-- Alert pour erreurs -->
+                <div class="alert alert-danger" id="errorAlert" style="display: none;">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <span id="errorMessage">Identifiants incorrects. Veuillez réessayer.</span>
+                </div>
+
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <!-- Bouton de connexion -->
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span class="btn-text">Se connecter</span>
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-focus sur le premier champ
+        document.getElementById('email').focus();
+    </script> 
+</body>
+</html>

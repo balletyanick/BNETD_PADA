@@ -1,0 +1,64 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Panneautage - Dashboard{% endblock %}
+
+{% block content %}
+
+                <!-- TABLE CONTAINER -->
+                <div class="stats-container">
+                    <div class="row g-4">
+                        <!-- Card 1: Utilisateurs -->
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                     <div class="stat-icon">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                    <div class="stat-title">Utilisateurs</div>
+                                </div>
+                                <div class="stat-value"> {{ total_utilisateurs }} </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Voies -->
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-signpost-2-fill"></i>
+                                    </div>
+                                    <div class="stat-title">Voies</div>
+                                </div>
+                                <div class="stat-value"> {{ total_voies }} </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Panneaux -->
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-sign-stop-fill"></i>
+                                    </div>
+                                    <div class="stat-title">Problèmes</div>
+                                </div>
+                                <div class="stat-value"> {{ total_problemes }} </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Projets -->
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-folder-fill"></i>
+                                    </div>
+                                    <div class="stat-title">Suggestions</div>
+                                </div>
+                                <div class="stat-value"> {{ total_suggestions }} </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+          
+{% endblock %}

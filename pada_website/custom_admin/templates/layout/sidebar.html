@@ -1,0 +1,33 @@
+{% load static %}
+
+
+<div class="col-md-2 p-3" id="sidebar">
+                <div style="display: flex;" class="mb-3">
+                    <img src="{% static 'image/logoPADA.png' %}" alt="Logo" style="height:50px; margin-right: 10px;">
+                    <h6 style="align-content: center;" class="fw-bold">PANNEAUTAGE <br>  BNETD </h6>
+                </div>
+
+                <a href="{% url 'dashboard' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-fill me-2"></i> Dashboard
+                </a>
+
+                <a href="{% url 'voies_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'voies_list' %}active{% endif %}">
+                    <i class="bi bi-pin-map-fill me-2"></i> Voie
+                </a>
+
+                <a href="{% url 'suggestion_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_list' %}active{% endif %}">
+                    <i class="bi bi-lightbulb-fill me-2"></i> Suggestion
+                </a>
+
+                <a href="{% url 'problemes_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'problemes_list' %}active{% endif %}">
+                    <i class="bi bi-radioactive me-2"></i> Problème 
+                </a>
+
+                <a href="{% url 'afficher_publicite' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'afficher_publicite' %}active{% endif %}">
+                    <i class="bi bi-megaphone me-2"></i> Publicité
+                </a>
+
+                <a href="{% url 'users_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'users_list' %}active{% endif %}">
+                    <i class="bi bi-people-fill me-2"></i> Utilisateur
+                </a>
+            </div> 

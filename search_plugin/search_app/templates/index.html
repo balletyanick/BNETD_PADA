@@ -1,0 +1,103 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="author" content="colorlib.com">
+    <link href="static/css/main.css" rel="stylesheet" />
+
+    <style>
+      
+      #customers {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#customers td, #customers th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+#customers tr:nth-child(even){background-color: #f2f2f2;}
+
+#customers tr:hover {background-color: #ddd;}
+
+#customers th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #04AA6D;
+  color: white;
+}
+
+.search-container {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+        }
+
+        #search {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        button {
+            background-color: #04AA6D;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            margin-left: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #04AA6D;
+        }
+    </style>
+  </head>
+  <body>
+    
+ 
+    <h1 style="text-align: center;">Recherche de Voies Publiques</h1>
+    <form method="get">
+
+      <div class="search-container">
+          <input type="text" id="search" name="terme_recherche"  placeholder="Rechercher...">
+          <button type="submit">Recherche</button>
+      </div>
+
+    </form>
+    {% if articles %}
+        <table id="customers">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>Nom de la rue</th>
+                    <th>Commune</th>
+                    <th>Quartier</th>
+                    </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                    <tr>
+                      <td>{{ article.id_voie }}</td>
+                        <td>{{ article.new_name }}</td>
+                        <td>{{ article.commune }}</td>
+                        <td>{{ article.quartier }}</td>
+                        </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Aucune voie publique trouvée.</p>
+    {% endif %}
+  </body>
+</html>

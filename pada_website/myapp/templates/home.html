@@ -1,0 +1,1489 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    {% comment %} <script src="https://www.google.com/recaptcha/api.js" async defer></script> {% endcomment %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+    <title>panneautage.bnetd.ci</title>
+
+ 
+    <style>
+    :root {
+        --primary-color: #0f172a;
+        --secondary-color: #1e293b;
+        --accent-color: #f08f30;
+        --footer-color: #000000;
+        --text-color: #0f172a;
+        --bg-color: #f8fafc;
+        --icon-color: #0F8342;
+        --marker-color: #ff0000;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding-top: 70px;
+        padding-bottom: 30px;
+    }
+
+    /* Navbar fixe */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; /* <-- mettre les éléments au début */
+        padding: 0 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+    
+    .navbar-logo {
+        height: 65px;
+        width: auto;
+        transition: transform 0.3s ease;
+    }
+
+    .second-logo {
+        height: 55px;
+        width: auto;
+        transition: transform 0.3s ease;
+    }
+    
+    .navbar-logo:active {
+        transform: scale(0.95);
+    }
+    
+    /* Ajouter un petit espace entre les deux logos */
+    .navbar-logo + .navbar-logo {
+        margin-left: 3px; /*uste la valeur pour l'espacement */
+    }
+    
+     
+    /* Contenu principal */
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        padding-top: 0;
+    }
+
+    /* Carte */
+    #map {
+        width: 100%;
+        height: 300px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        margin-top: 25px;
+    }
+
+    /* Section informations */
+    .info-section {
+        background-color: white;
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        margin-top: 8px;
+    }
+
+    .info-group {
+        flex: 1;
+        min-width: 120px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-value {
+        flex: 1;
+        display: flex;
+        min-height: 60px; /* Hauteur fixe pour uniformiser */
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .info-value i {
+        margin-right: 10px;
+        color: var(--icon-color);
+    }
+
+    .info-value span {
+        text-align: justify;
+        text-justify: inter-word;
+        letter-spacing: normal;
+        word-spacing: normal;
+    }
+
+    /* Menu de partage */
+    .share-menu {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        display: none;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        gap: 10px;
+        background: white;
+        padding: 12px 15px;
+        border-radius: 25px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .share-menu.active {
+        display: flex;
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .share-card {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+        pointer-events: none;
+        position: relative;
+        overflow: hidden;
+        border: none;
+    }
+
+    .share-menu.active .share-card {
+        pointer-events: auto;
+    }
+
+    .share-card:nth-child(1) { transition-delay: 0.05s; }
+    .share-card:nth-child(2) { transition-delay: 0.1s; }
+    .share-card:nth-child(3) { transition-delay: 0.15s; }
+    .share-card:nth-child(4) { transition-delay: 0.2s; }
+    .share-card:nth-child(5) { transition-delay: 0.25s; }
+
+    .share-card:active {
+        transform: scale(0.9) !important;
+    }
+
+    .share-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.3);
+        transform: scale(0);
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+    }
+
+    .share-card:active::before {
+        transform: scale(2);
+        opacity: 0;
+    }
+
+    .share-card img {
+        width: 24px;
+        height: 24px;
+        transition: transform 0.2s ease;
+        pointer-events: none;
+    }
+
+    /* Overlay pour le menu de partage */
+    .share-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .share-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Contrôles de la carte */
+    .leaflet-control-zoom {
+        background: white;
+        border-radius: 4px;
+        padding: 2px;
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .leaflet-control-zoom a {
+        color: var(--icon-color);
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
+    }
+
+    .leaflet-top, .leaflet-bottom {
+        position: absolute;
+        z-index: 900 !important;
+        pointer-events: none;
+    }
+
+    .map-share-btn {
+        z-index: 900 !important;
+    }
+
+    .leaflet-control-custom {
+        background: white;
+        border-radius: 4px;
+        padding: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .leaflet-control-custom i {
+        font-size: 1rem;
+        color: var(--icon-color);
+    }
+
+    .layer-menu {
+        position: absolute;
+        bottom: 50px;
+        left: 0;
+        background: white;
+        border-radius: 12px;
+        padding: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .leaflet-control-custom.active .layer-menu {
+        display: flex;
+    }
+
+    .layer-button {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .layer-button img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Footer */
+    .footer {
+        background-color: var(--footer-color);
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 0.65rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        height: auto;
+    }
+
+    .footer-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .footer-copyright {
+        margin-top: 8px;
+        color: #f8f9fa;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Style pour la description avec photo */
+    .description-with-photo {
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .photo-personnalite-container {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--icon-color);
+        flex-shrink: 0;
+    }
+
+    .photo-personnalite {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center top;
+    }
+
+    .description-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Styles pour la section suggestion */
+    .suggestion-section {
+        background-color: transparent;
+        border-radius: 15px;
+        padding: 0;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
+
+    .suggestion-title {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 10px;
+    }
+
+    .suggestion-title i {
+        margin-right: 8px;
+        color: var(--icon-color);
+    }
+
+    .suggestion-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .suggestion-input-container {
+        position: relative;
+    }
+
+    .suggestion-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        resize: none;
+        min-height: 80px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .suggestion-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(240, 143, 48, 0.1);
+        min-height: 100px;
+    }
+
+    .suggestion-submit {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: all 0.3s;
+        height: 40px;
+        margin-left: auto;
+        position: absolute;
+        right: 0;
+        bottom: -50px;
+    }
+
+    #probleme-container {
+        text-align:center;
+        margin-top: 35px;
+    }
+
+    #probleme-container a {
+        color: white;
+        background-color: #ff0000;
+        padding: 10px;
+        padding-bottom: 14px;
+        border-radius: 10px;
+        text-decoration:none;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+      
+    .suggestion-input:focus + .suggestion-row .suggestion-submit {
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .feedback-message {
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+
+    .feedback-message .success {
+        color: #28a745;
+    }
+
+    .feedback-message .error {
+        color: #dc3545;
+    }
+
+    .feedback-message i {
+        margin-right: 5px;
+    }
+
+    /* Style pour la description avec scroll */
+    .description-scroll {
+        max-height: 4.5em;
+        overflow: hidden;
+        position: relative;
+        transition: max-height 0.3s ease;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .description-scroll.expanded {
+        max-height: none;
+    }
+
+    .description-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .description-scroll::-webkit-scrollbar-thumb {
+        background-color: var(--accent-color);
+        border-radius: 2px;
+    }
+
+    /* Style pour le footer avec partenaires */
+    .footer-partners {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px; /* Augmentation de l'espace entre les logos */
+        margin-bottom: 50px;
+        flex-wrap: wrap;
+        padding: 0 20px;
+    }
+    .footer-partners img {
+        height: 30px;
+        width: auto;
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+
+    .footer-partners img.partner1 {
+        height: 20px;
+        margin-bottom: 5px;
+    }
+    
+    .footer-partners img.partner2 {
+        height: 20px;
+    }
+    
+    .footer-partners img.partner3 {
+        height: 37px;
+    }
+
+    .footer-partners img.partner4{
+        height: 55px;
+    }
+
+
+    .footer-partners img:hover {
+        opacity: 2;
+    }
+
+    /* Style pour le bouton de partage sur la carte */
+    .map-share-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 1000;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: white;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    .map-share-btn:hover {
+        transform: scale(1.05);
+        background-color: #f0f0f0;
+    }
+
+    .map-share-btn svg {
+        width: 18px;
+        height: 18px;
+        color: var(--icon-color);
+    }
+
+    /* Marqueur et cercle sur la carte */
+    .leaflet-marker-icon {
+        filter: hue-rotate(0deg) brightness(1.2) saturate(2);
+        height: 36px !important;
+        width: 25px !important;
+    }
+
+    .leaflet-interactive {
+        stroke: var(--marker-color);
+        fill: var(--marker-color);
+        fill-opacity: 0.1;
+    }
+
+    /* Texte "Voir plus" */
+    .see-more {
+        color: var(--accent-color) !important;
+        cursor: pointer;
+        font-size: 0.9em;
+        margin-top: 4px;
+        display: none;
+        font-weight: bold;
+        text-align: right;
+        align-self: flex-end;
+        margin-left: auto;
+    }
+
+
+
+    /* Popup Publicitaire */
+    .pub-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        padding: 20px;
+    }
+
+    .pub-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .pub-container {
+        position: relative;
+        max-width: 600px;
+        width: 100%;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        transform: scale(0.8);
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .pub-overlay.active .pub-container {
+        transform: scale(1);
+    }
+
+    .pub-header {
+        background: linear-gradient(135deg, #f08f30 0%, #e67e22 100%);
+        padding: 15px 20px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .pub-title {
+        font-size: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pub-title i {
+        font-size: 22px;
+    }
+
+    .pub-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .pub-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+    }
+
+    .pub-content {
+        padding: 0;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .pub-media {
+        width: 100%;
+        position: relative;
+        background: #000;
+    }
+
+    .pub-media img,
+    .pub-media video {
+        width: 100%;
+        height: auto;
+        max-height: 60vh;
+        object-fit: contain;
+        display: block;
+    }
+
+    .pub-description {
+        padding: 20px;
+        color: #333;
+        font-size: 15px;
+        line-height: 1.6;
+        background: #f8f9fa;
+    }
+
+    .pub-description h3 {
+        color: #f08f30;
+        font-size: 20px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .pub-footer {
+        padding: 15px 20px;
+        background: white;
+        border-top: 1px solid #e8e9ea;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .pub-btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pub-btn-primary {
+        background: #f08f30;
+        color: white;
+    }
+
+    .pub-btn-primary:hover {
+        background: #e67e22;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(240, 143, 48, 0.3);
+    }
+
+    .pub-btn-secondary {
+        background: white;
+        color: #666;
+        border: 1px solid #e8e9ea;
+    }
+
+    .pub-btn-secondary:hover {
+        background: #f8f9fa;
+        border-color: #f08f30;
+        color: #f08f30;
+    }
+
+    /* Animation du compteur */
+    .pub-timer {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .pub-timer i {
+        font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .pub-container {
+            max-width: 95%;
+            margin: 10px;
+        }
+
+        .pub-header {
+            padding: 12px 15px;
+        }
+
+        .pub-title {
+            font-size: 16px;
+        }
+
+        .pub-description {
+            padding: 15px;
+            font-size: 14px;
+        }
+
+        .pub-footer {
+            flex-direction: column;
+            padding: 12px 15px;
+        }
+
+        .pub-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+
+
+/* Animation de pulsation pour attirer l'attention */
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .pub-btn-primary {
+        animation: pulse 2s infinite;
+    }
+
+    .pub-btn-primary:hover {
+        animation: none;
+    }
+
+    /* Adaptation mobile */
+    @media (max-width: 768px) {
+        .info-group {
+            min-width: calc(50% - 8px);
+        }
+        
+        .description-with-photo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+    
+        .photo-personnalite-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--icon-color);
+            flex-shrink: 0;
+            margin: 0 auto;
+        }
+    
+        .description-content {
+            width: 100%;
+        }
+
+        .suggestion-submit {
+            position: relative;
+            bottom: auto;
+            right: auto;
+            margin-top: 10px;
+        }
+
+        .probleme-submit {
+            position: relative;
+            bottom: auto;
+            right: auto;
+            margin-top: 10px;
+        }
+
+        .suggestion-input:focus + .suggestion-row .suggestion-submit {
+            bottom: auto;
+            right: auto;
+        }
+    }
+
+    .small-marker {
+        width: 10px !important;
+        height: 16px !important;
+        background-size: contain !important;
+        background-repeat: no-repeat !important;
+    }
+ 
+ .g-recaptcha {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Pour les petits écrans */
+@media (max-width: 480px) {
+    .g-recaptcha {
+        transform: scale(0.85);
+        transform-origin: left top;
+    }
+}
+
+ /* Pour les écrans très petits */
+    @media (max-width: 320px) {
+        .g-recaptcha {
+            transform: scale(0.75);
+            transform-origin: left top;
+        }
+    }   
+</style>
+
+
+</head>
+<body>
+
+    {% if publicite_globale %}
+        <div class="pub-overlay" id="pubOverlay">
+            <div class="pub-container">
+                <!-- Header -->
+                <div class="pub-header">
+                    <div class="pub-title">
+                        <i class="ri-megaphone-fill"></i>
+                        <span>{{ publicite_globale.titre }}</span>
+                    </div>
+                    <button class="pub-close" onclick="closePubPopup()">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+
+                <!-- Contenu -->
+                <div class="pub-content">
+                    <!-- Compteur (optionnel) -->
+                    <div class="pub-timer" id="pubTimer" style="display: none;">
+                        <i class="ri-time-line"></i>
+                        <span id="timerCount">5</span>s
+                    </div>
+
+                    <!-- Média (Image ou Vidéo) -->
+                    <div class="pub-media">
+                        {% if publicite_globale.video %}
+                            <video id="pubVideo" controls autoplay muted playsinline>
+                                <source src="{{ publicite_globale.video.url }}" type="video/mp4">
+                            </video>
+                        {% elif publicite_globale.image %}
+                            <img src="{{ publicite_globale.image.url }}" alt="{{ publicite_globale.titre }}">
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    {% if publicite_globale.description %}
+                    <div class="pub-description">
+                        <h3>{{ publicite_globale.titre }}</h3>
+                        <p>{{ publicite_globale.description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Footer avec boutons -->
+                <div class="pub-footer">
+                    <button class="pub-btn pub-btn-primary" onclick="closePubPopup()">
+                        <i class="ri-check-line"></i>
+                        J'ai compris
+                    </button>
+                
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+
+    <!-- Navbar fixe -->
+    <img src="{{ publicite_globale.image.url }}" alt="{{ publicite_globale.titre }}">
+    <nav class="navbar">
+        <img src="{% static 'image/BD_ADRESSAGE.png' %}" alt="BD_ADRESSAGE" class="navbar-logo">
+        <img src="{% static 'image/armoirie.png' %}" alt="Second-Logo" class="navbar-logo second-logo">
+    </nav>      
+
+    <!-- Overlay pour le menu de partage -->
+    <div class="share-overlay" id="shareOverlay" onclick="closeShareMenu()"></div>
+
+    <!-- Menu de partage -->
+    <div class="share-menu" id="shareMenu">
+        <button class="share-card whatsapp" onclick="shareOnWhatsApp()">
+            <img src="{% static 'image/whatsapp.png' %}" alt="WhatsApp">
+        </button>
+        <button class="share-card instagram" onclick="shareOnInstagram()">
+            <img src="{% static 'image/instagram.png' %}" alt="Instagram">
+        </button>
+        <button class="share-card facebook" onclick="shareOnFacebook()">
+            <img src="{% static 'image/facebook.png' %}" alt="Facebook">
+        </button>
+        <button class="share-card email" onclick="shareViaEmail()">
+            <img src="{% static 'image/gmail.png' %}" alt="Email">
+        </button>
+        <button class="share-card sms" onclick="shareViaSMS()">
+            <img src="{% static 'image/sms.png' %}" alt="SMS">
+        </button>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="main-content">
+        <!-- Carte -->
+        <div id="map">
+            <div class="map-share-btn" onclick="toggleShareMenu()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path fill-rule="evenodd" d="M15.75 4.5a3 3 0 11.825 2.066l-8.421 4.679a3.002 3.002 0 010 1.51l8.421 4.679a3 3 0 11-.729 1.31l-8.421-4.678a3 3 0 110-4.132l8.421-4.679a3 3 0 01-.096-.755z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Informations -->
+        <section class="info-section">
+            <div class="info-group">
+                <div class="info-label">Nom de la voie</div>
+                <div class="info-value">
+                    <i class="ri-direction-fill"></i>
+                    <span>{{ nom_rue }}</span>
+                </div>
+            </div>
+ 
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="info-label">Commune</div>
+                    <div class="info-value">
+                        <i class="ri-building-fill"></i>
+                        <span>{{ commune_rue }}</span>
+                    </div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Quartier</div>
+                    <div class="info-value">
+                        <i class="ri-community-fill"></i>
+                        <span>{{ quartier_rue }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">Information sur le nom de la voie</div>
+                <div class="info-value">
+                    <div class="description-with-photo">
+                        {% if has_personnalite_photo and photo_personnalite %}
+                        <div class="photo-personnalite-container">
+                            <img src="{{ photo_personnalite }}" 
+                                 alt="Photo de {{ nom_rue }}" 
+                                 class="photo-personnalite"
+                                 onerror="this.parentElement.style.display='none'">
+                        </div>
+                        {% endif %}
+                        <div class="description-content">
+                            <div class="description-scroll" id="desc">
+                                <i class="ri-information-fill"></i>
+                                <span id="desc-text">{{ description_rue }}</span>
+                            </div>
+                            <div class="see-more" id="see-more" onclick="toggleDescription()">Plus</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Suggestion -->
+        <section class="info-section">
+            <div class="suggestion-title">
+                <i class="ri-message-fill"></i>
+                <span>Suggestions</span>
+            </div>
+            <form id="suggestionForm" class="suggestion-form" data-url="/{{ qr_code }}/submit-suggestion/">
+                {% csrf_token %}
+                <div class="suggestion-input-container">
+                    <textarea name="suggestion" class="suggestion-input" required placeholder="Vos compléments d'informations sur la voie..."></textarea>
+                    <div class="suggestion-row">
+                        <!-- Ajout du CAPTCHA -->
+                        {% comment %} <div class="g-recaptcha" data-sitekey="6Ldn8mwrAAAAABCGzXdgfedSKlnhu6Ek3vHz2d_6"></div> {% endcomment %}
+                        <button type="submit" class="suggestion-submit">
+                            <i class="ri-send-plane-fill"></i> Envoyer
+                        </button>
+                    </div>
+                </div>
+                <div id="formFeedback"></div>
+            </form>
+        </section>
+
+        <!-- Signaler Un Problème -->
+        <div id="probleme-container">
+         
+            <a href="{% url 'signaler_probleme' voie.clean_qr_code %}" class="btn btn-warning mt-2">
+                Signaler un problème
+            </a>
+        </div>
+        
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-partners">
+        <img src="{% static 'image/MCLU.png' %}" alt="Partenaire 1" class="partner-logo partner1">
+        <img src="{% static 'image/BNETD.png' %}" alt="Partenaire 2" class="partner-logo partner2">
+        <img src="{% static 'image/PACOGA.png' %}" alt="Partenaire 3" class="partner-logo partner3">
+        <img src="{% static 'image/banquemondiale.png' %}" alt="partenaire 4" class="partner-logo partner4">
+
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-copyright">© 2025 CENTRALE D'ADRESSAGE. Tous droits réservés</div>
+            <div>Infoline: 1378</div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialisation de la carte
+        var x = parseFloat("{{ x|escapejs }}");
+        var y = parseFloat("{{ y|escapejs }}");
+        var staticZoom = 18;
+
+        if (isNaN(x) || isNaN(y)) {
+            console.error("Les coordonnées sont invalides :", x, y);
+            x = 5.316667;
+            y = -4.033333;
+        }
+
+        var map = L.map('map').setView([y, x], staticZoom);
+
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        var googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 19,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; <a href="https://www.google.com/intl/en/permissions/geoguidelines/">Google Maps</a>'
+        });
+
+        // Contrôle des couches
+        var layerControl = L.Control.extend({
+            onAdd: function(map) {
+                var container = L.DomUtil.create('div', 'leaflet-control-custom');
+                var button = L.DomUtil.create('button', '', container);
+                button.innerHTML = '<i class="ri-map-2-fill"></i>';
+                var menu = L.DomUtil.create('div', 'layer-menu', container);
+                menu.innerHTML = `
+                    <button class="layer-button" onclick="setLayer('osm')">
+                        <img src="{% static 'image/osm.jpeg' %}" alt="OSM">
+                    </button>
+                    <button class="layer-button" onclick="setLayer('google')">
+                        <img src="{% static 'image/satellite.jpeg' %}" alt="Google">
+                    </button>
+                `;
+                L.DomEvent.on(button, 'click', function(e) {
+                    e.stopPropagation();
+                    container.classList.toggle('active');
+                });
+                map.on('click', function() {
+                    container.classList.remove('active');
+                });
+                return container;
+            }
+        });
+        map.addControl(new layerControl({ position: 'bottomleft' }));
+
+        function setLayer(layer) {
+            if (layer === 'osm') {
+                map.removeLayer(googleSatellite);
+                map.addLayer(osmLayer);
+            } else {
+                map.removeLayer(osmLayer);
+                map.addLayer(googleSatellite);
+            }
+        }
+
+    // Taille de l'icône CSS
+var iconWidth = 10; // Largeur de l'icône
+var iconHeight = 16; // Hauteur de l'icône
+
+// Marqueur avec icône personnalisée
+var marker = L.marker([y, x], {
+    icon: L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconSize: [iconWidth, iconHeight],  // Appliquer la taille CSS à l'icône
+        iconAnchor: [iconWidth / 2, iconHeight], // Centrer l'icône sur le marqueur
+        popupAnchor: [0, -iconHeight],
+        shadowSize: [41, 41],
+        className: 'small-marker'  // nom de ta classe CSS personnalisée
+    })
+}).addTo(map);
+
+// Ajuster le rayon du cercle pour qu'il soit légèrement plus grand que l'icône
+var circleRadius = Math.max(iconWidth, iconHeight) / 2 + 5;  // Rayon du cercle basé sur la taille de l'icône
+
+// Cercle autour du marqueur
+var circle = L.circle([y, x], {
+    radius: circleRadius,  // Rayon ajusté
+    color: '#cc0000',
+    weight: 1,
+    fillColor: '#ff0000',
+    fillOpacity: 0.3
+}).addTo(map);
+
+        
+
+        // Contrôle de localisation
+        var locateControl = L.Control.extend({
+            onAdd: function(map) {
+                var container = L.DomUtil.create('div', 'leaflet-control-custom');
+                var button = L.DomUtil.create('button', '', container);
+                button.innerHTML = '<i class="ri-focus-3-fill"></i>';
+                L.DomEvent.on(button, 'click', function() {
+                    map.setView([y, x], staticZoom, { animate: true });
+                });
+                return container;
+            }
+        });
+        map.addControl(new locateControl({ position: 'topright' }));
+
+        // Fonctions de partage
+        function generateGoogleMapsUrl() {
+            return `https://www.google.com/maps?q=${y},${x}`;
+        }
+
+        function shareOnWhatsApp() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
+        }
+
+        function shareOnInstagram() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            copyToClipboard(googleMapsUrl);
+            alert("Lien Google Maps copié dans le presse-papiers ! Collez-le dans Instagram.");
+        }
+
+        function shareOnFacebook() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps`;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(googleMapsUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
+        }
+
+        function shareViaEmail() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
+            window.location.href = `mailto:?subject=Ma position&body=${encodeURIComponent(shareText)}`;
+        }
+
+        function shareViaSMS() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
+            window.location.href = `sms:?body=${encodeURIComponent(shareText)}`;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('Copied to clipboard');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        // Gestion du menu de partage
+        function toggleShareMenu() {
+            const shareMenu = document.getElementById('shareMenu');
+            const shareOverlay = document.getElementById('shareOverlay');
+            const shareCards = document.querySelectorAll('.share-card');
+
+            if (shareMenu.classList.contains('active')) {
+                closeShareMenu();
+            } else {
+                openShareMenu();
+            }
+        }
+
+        function openShareMenu() {
+            const shareMenu = document.getElementById('shareMenu');
+            const shareOverlay = document.getElementById('shareOverlay');
+            const shareCards = document.querySelectorAll('.share-card');
+
+            shareMenu.classList.add('active');
+            shareOverlay.classList.add('active');
+
+            shareCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0) scale(1)';
+                }, index * 100);
+            });
+        }
+
+        function closeShareMenu() {
+            const shareMenu = document.getElementById('shareMenu');
+            const shareOverlay = document.getElementById('shareOverlay');
+            const shareCards = document.querySelectorAll('.share-card');
+
+            shareCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px) scale(0.8)';
+                }, index * 50);
+            });
+
+            setTimeout(() => {
+                shareMenu.classList.remove('active');
+                shareOverlay.classList.remove('active');
+            }, shareCards.length * 50);
+        }
+
+        document.addEventListener('click', function(e) {
+            const shareMenu = document.getElementById('shareMenu');
+            const mapShareBtn = document.querySelector('.map-share-btn');
+
+            if (!shareMenu.contains(e.target) && !mapShareBtn.contains(e.target)) {
+                closeShareMenu();
+            }
+        });
+    </script>
+
+    <script>
+            document.getElementById('suggestionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const feedback = document.getElementById('formFeedback');
+            const url = this.dataset.url;
+            
+            // Vérification du CAPTCHA
+            //const recaptchaResponse = grecaptcha.getResponse();
+            //if (!recaptchaResponse) {
+                //feedback.innerHTML = '<p class="error"><i class="ri-error-warning-fill"></i> Veuillez valider le CAPTCHA</p>';
+                //setTimeout(() => feedback.innerHTML = '', 5000);
+                //return;
+            //}
+            
+            // Ajouter la réponse du CAPTCHA aux données du formulaire
+            //formData.append('g-recaptcha-response', recaptchaResponse);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    feedback.innerHTML = '<p class="success"><i class="ri-checkbox-circle-fill"></i> Merci pour votre suggestion !</p>';
+                    this.reset();
+                    this.reset();
+                    // Réinitialiser le CAPTCHA
+                     //grecaptcha.reset();
+                } else {
+                    const errors = data.errors?.suggestion?.[0] || data.message || 'Une erreur est survenue';
+                    feedback.innerHTML = `<p class="error"><i class="ri-error-warning-fill"></i> ${errors}</p>`;
+                    // Réinitialiser le CAPTCHA en cas d'erreur
+                     //grecaptcha.reset();
+                }
+                setTimeout(() => feedback.innerHTML = '', 5000);
+            })
+            .catch(error => {
+                feedback.innerHTML = '<p class="error"><i class="ri-error-warning-fill"></i> Erreur de connexion</p>';
+                console.error('Erreur JS :', error);
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const desc = document.getElementById("desc");
+            const seeMore = document.getElementById("see-more");
+            const descText = document.getElementById("desc-text");
+
+            // Vérifie si le texte dépasse la hauteur maximale
+            function checkTextOverflow() {
+                if (desc.scrollHeight > desc.offsetHeight) {
+                    seeMore.style.display = "inline";
+                } else {
+                    seeMore.style.display = "none";
+                }
+            }
+
+            // Vérification initiale
+            checkTextOverflow();
+
+            // Ré-verifie après le chargement des polices et images
+            window.addEventListener('load', checkTextOverflow);
+        });
+
+        function toggleDescription() {
+            const desc = document.getElementById("desc");
+            const seeMore = document.getElementById("see-more");
+
+            if (desc.classList.contains("expanded")) {
+                desc.classList.remove("expanded");
+                seeMore.innerText = "Plus";
+                // Faire remonter en haut de la description
+                desc.scrollTop = 0;
+            } else {
+                desc.classList.add("expanded");
+                seeMore.innerText = "Moins";
+            }
+        }
+    </script>
+
+    <script>
+    // Gestion de la popup publicitaire
+    (function() {
+        const pubOverlay = document.getElementById('pubOverlay');
+        
+        if (!pubOverlay) return;
+
+        // Afficher la popup après 5 secondes
+        setTimeout(() => {
+            openPubPopup();
+        }, 5000);
+    })();
+
+    function openPubPopup() {
+        const pubOverlay = document.getElementById('pubOverlay');
+        const pubVideo = document.getElementById('pubVideo');
+        
+        pubOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Démarrer la vidéo si elle existe
+        if (pubVideo) {
+            pubVideo.play();
+        }
+    }
+
+    function closePubPopup() {
+        const pubOverlay = document.getElementById('pubOverlay');
+        const pubVideo = document.getElementById('pubVideo');
+        
+        pubOverlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        
+        // Arrêter la vidéo
+        if (pubVideo) {
+            pubVideo.pause();
+        }
+    }
+
+ 
+
+    // Fermer avec la touche Échap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePubPopup();
+        }
+    });
+
+    // Empêcher la fermeture en cliquant sur le fond noir
+    document.getElementById('pubOverlay')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            // Ne rien faire - empêche la fermeture
+        }
+    });
+</script>
+</body>
+</html>

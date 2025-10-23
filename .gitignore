@@ -1,0 +1,8 @@
+# Ignorer les fichiers compilés Python
+*.pyc
+__pycache__/
+myapp/migrations/__pycache__/
+myproject/__pycache__/
+myapp/__pycache__/
+search_plugin\search_plugin\settings.py
+search_plugin/search_plugin/settings.py

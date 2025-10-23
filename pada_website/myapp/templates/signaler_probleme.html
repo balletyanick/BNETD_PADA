@@ -1,0 +1,583 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    {% comment %} <script src="https://www.google.com/recaptcha/api.js" async defer></script> {% endcomment %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+    <title>panneautage.bnetd.ci</title>
+
+ 
+    <style>
+    :root {
+        --primary-color: #0f172a;
+        --secondary-color: #1e293b;
+        --accent-color: #f08f30;
+        --footer-color: #000000;
+        --text-color: #0f172a;
+        --bg-color: #f8fafc;
+        --icon-color: #0F8342;
+        --marker-color: #ff0000;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding-top: 70px;
+        padding-bottom: 30px;
+    }
+
+    /* Navbar fixe */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; /* <-- mettre les éléments au début */
+        padding: 0 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+    
+    .navbar-logo {
+        height: 65px;
+        width: auto;
+        transition: transform 0.3s ease;
+    }
+
+    .second-logo {
+        height: 55px;
+        width: auto;
+        transition: transform 0.3s ease;
+    }
+    
+    .navbar-logo:active {
+        transform: scale(0.95);
+    }
+    
+    /* Ajouter un petit espace entre les deux logos */
+    .navbar-logo + .navbar-logo {
+        margin-left: 3px; /*uste la valeur pour l'espacement */
+    }
+    
+     
+    /* Contenu principal */
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        padding-top: 0;
+    }
+
+   
+
+    /* Section informations */
+    .info-section {
+        background-color: white;
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        margin-top:25px;
+    }
+
+    .info-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        margin-top: 8px;
+    }
+
+    .info-group {
+        flex: 1;
+        min-width: 120px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-value {
+        flex: 1;
+        display: flex;
+        min-height: 60px; /* Hauteur fixe pour uniformiser */
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .info-value i {
+        margin-right: 10px;
+        color: var(--icon-color);
+    }
+
+    .info-value span {
+        text-align: justify;
+        text-justify: inter-word;
+        letter-spacing: normal;
+        word-spacing: normal;
+    }
+
+    /* Footer */
+    .footer {
+        background-color: var(--footer-color);
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 0.65rem;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        height: auto;
+    }
+
+    .footer-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    .footer-copyright {
+        margin-top: 8px;
+        color: #f8f9fa;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Styles pour la section description */
+    #select {
+        padding: 3px;
+        width: 100%;
+        padding: 12px;
+        background-color: transparent;
+        border: 1px solid #e2e8f0;
+        border-radius: 5px;
+        color: #757575;
+        font-weight: 100;   
+    }
+
+    .description-section {
+        background-color: transparent;
+        border-radius: 15px;
+        padding: 0;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
+
+    .label-input {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 10px;
+    }
+
+    .label-input i {
+        margin-right: 8px;
+        color: var(--icon-color);
+    }
+
+    .description-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .input-container {
+        position: relative;
+    }
+
+    .description-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        resize: none;
+        min-height: 80px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .description-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(240, 143, 48, 0.1);
+        min-height: 100px;
+    }
+
+
+    .box-input {
+        margin-top: 20px;
+    }
+
+    .name-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 5px;
+        resize: none;
+        min-height: 35px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .name-input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(240, 143, 48, 0.1);
+        min-height: 45;
+    }
+
+   
+
+    .description-submit {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: all 0.3s;
+        height: 40px;
+        margin-left: auto;
+        position: absolute;
+        right: 0;
+        bottom: -50px;
+    }
+      
+    .description-input:focus + .description-row .description-submit {
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .feedback-message {
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+
+    .feedback-message .success {
+        color: #28a745;
+    }
+
+    .feedback-message .error {
+        color: #dc3545;
+    }
+
+    .feedback-message i {
+        margin-right: 5px;
+    }
+
+    /* Style pour la description avec scroll */
+    .description-scroll {
+        max-height: 4.5em;
+        overflow: hidden;
+        position: relative;
+        transition: max-height 0.3s ease;
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .description-scroll.expanded {
+        max-height: none;
+    }
+
+    .description-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .description-scroll::-webkit-scrollbar-thumb {
+        background-color: var(--accent-color);
+        border-radius: 2px;
+    }
+
+    /* Style pour le footer avec partenaires */
+    .footer-partners {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px; /* Augmentation de l'espace entre les logos */
+        margin-bottom: 50px;
+        flex-wrap: wrap;
+        padding: 0 20px;
+    }
+    .footer-partners img {
+        height: 30px;
+        width: auto;
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+
+    .footer-partners img.partner1 {
+        height: 20px;
+        margin-bottom: 5px;
+    }
+    
+    .footer-partners img.partner2 {
+        height: 20px;
+    }
+    
+    .footer-partners img.partner3 {
+        height: 37px;
+    }
+
+    .footer-partners img.partner4{
+        height: 55px;
+    }
+
+
+    .footer-partners img:hover {
+        opacity: 2;
+    }
+
+    /* Adaptation mobile */
+    @media (max-width: 768px) {
+        .info-group {
+            min-width: calc(50% - 8px);
+        }
+    
+        .description-content {
+            width: 100%;
+        }
+
+        .description-submit {
+            position: relative;
+            bottom: auto;
+            right: auto;
+            margin-top: 10px;
+        }
+
+        .description-input:focus + .description-row .description-submit {
+            bottom: auto;
+            right: auto;
+        }
+    }
+
+    .small-marker {
+        width: 10px !important;
+        height: 16px !important;
+        background-size: contain !important;
+        background-repeat: no-repeat !important;
+    }
+ 
+ .g-recaptcha {
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Pour les petits écrans */
+@media (max-width: 480px) {
+    .g-recaptcha {
+        transform: scale(0.85);
+        transform-origin: left top;
+    }
+}
+
+ /* Pour les écrans très petits */
+    @media (max-width: 320px) {
+        .g-recaptcha {
+            transform: scale(0.75);
+            transform-origin: left top;
+        }
+    }   
+</style>
+</head>
+<body>
+    <!-- Navbar fixe -->
+    <nav class="navbar">
+        <img src="{% static 'image/BD_ADRESSAGE.png' %}" alt="BD_ADRESSAGE" class="navbar-logo">
+        <img src="{% static 'image/armoirie.png' %}" alt="Second-Logo" class="navbar-logo second-logo">
+    </nav>      
+
+    <!-- Contenu principal -->
+    <div class="main-content">
+
+        <form id="problemeForm" method="POST" >
+            {% csrf_token %}
+            
+
+            <!-- Section description -->
+            <section class="info-section">
+            
+                <div> 
+                    <div class="label-input">
+                        <i class="ri-user-line"></i>
+                        <span>Nom & Prénoms </span>
+                    </div>
+                
+                    <div class="input-container">
+                        <input type="text" name="name" class="name-input" required  placeholder="Saisir votre nom complet" />
+                    </div>
+
+                </div>
+
+                <div class="box-input"> 
+                    <div class="label-input">
+                        <i class="ri-smartphone-line"></i>
+                        <span>Téléphone </span>
+                    </div>
+                
+                    <div class="input-container">
+                        <input type="tel" name="phone" class="name-input" required  placeholder="Saisir votre nom numéro de téléphone"/>
+                    </div>
+
+                </div>
+
+                <div class="box-input"> 
+                    <div class="label-input">
+                        <i class="ri-alert-line"></i>
+                        <span> Selectionner le problème </span>
+                    </div>
+                
+                    <div class="input-container">
+                        <select name="probleme" id="select">
+                                        <option value="Rayure sur la plaque"> Rayure sur la plaque</option>
+                                        <option value="Poteau endommagé"> Poteau endommagé</option>
+                                        <option value="Mauvaise position de la plaque"> Mauvaise position de la plaque</option>
+                                        <option value="Ecriture illisible"> Ecriture illisible </option>
+                                        <option value="Autre"> Autre </option>
+                        </select>
+                    </div>
+                </div>
+                
+
+                <div style="margin-top:20px"> 
+                    <div class="label-input">
+                        <i class="ri-message-line"></i>
+                        <span>Description</span>
+                    </div>
+                
+                    <div class="input-container">
+                        <textarea name="description" class="description-input" required placeholder="Vos compléments d'informations sur la voie..."></textarea>
+                    </div>
+                    
+                    <div id="formFeedback"></div>
+                </div>
+
+            </section>
+
+            <div style="margin-top:20px; text-align:right;">
+                <button type="submit" class="description-submit">
+                    <i class="ri-send-plane-fill"></i> Envoyer
+                </button>
+            </div>
+        </form>
+
+        <div id="feedbackMessage" style="margin-top:10px; font-weight:bold;"></div>
+
+        
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-partners">
+        <img src="{% static 'image/MCLU.png' %}" alt="Partenaire 1" class="partner-logo partner1">
+        <img src="{% static 'image/BNETD.png' %}" alt="Partenaire 2" class="partner-logo partner2">
+        <img src="{% static 'image/PACOGA.png' %}" alt="Partenaire 3" class="partner-logo partner3">
+        <img src="{% static 'image/banquemondiale.png' %}" alt="partenaire 4" class="partner-logo partner4">
+
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-copyright">© 2025 CENTRALE D'ADRESSAGE. Tous droits réservés</div>
+            <div>Infoline: 1378</div>
+        </div>
+    </footer>
+
+    <script>
+        // Taille de l'icône CSS
+        var iconWidth = 10; // Largeur de l'icône
+        var iconHeight = 16; // Hauteur de l'icône
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("problemeForm");
+            const feedback = document.getElementById("formFeedback");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault(); // Empêche le rechargement de la page
+
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch("", { // l'URL est la même que la page actuelle
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": formData.get("csrfmiddlewaretoken")
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === "success") {
+                        feedback.innerHTML = `<p style="color:green">${result.message}</p>`;
+                        form.reset(); // réinitialise le formulaire
+                    } 
+                    
+                    else {
+                        feedback.innerHTML = `<p style="color:red">${result.message || "Erreur lors de l'envoi"}</p>`;
+                    }
+
+                } catch (error) {
+                    feedback.innerHTML = `<p style="color:red">Erreur serveur, veuillez réessayer</p>`;
+                    console.error(error);
+                }
+            });
+        });
+    </script>
+
+
+</body>
+</html>

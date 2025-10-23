@@ -1,0 +1,346 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> {% block title %} Admin - Panneautage {% endblock %} </title>
+    <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+
+    
+    <!-- CSS personnalisé -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Bloc CSS spécifique à chaque page -->
+    {% block css %}{% endblock %}
+
+    <style>
+                
+        /* HEADER */
+        #header {
+            background-color: #FFF2E6; 
+            border-bottom: 1px rgb(221, 218, 218) solid;
+            padding: 1rem !important;
+            width: 100%;
+        }
+
+        .header-content {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+            margin: 0 !important;
+        }
+
+        .user-info {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF7900 0%, #ff8f33 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.2;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 !important;
+            padding: 0;
+            line-height: 1.2;
+            white-space: nowrap;
+            text-transform: capitalize;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #666;
+            margin: 0 !important;
+            padding: 0;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+   
+
+        .logout-btn {
+            background-color: white !important;
+            border: 1px solid #e8e9ea !important;
+            border-radius: 8px !important;
+            padding: 10px 16px !important;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666 !important;
+            transition: all 0.2s ease;
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            text-decoration: none !important;
+            margin-left: 15px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .logout-btn:hover {
+            background-color: #ffebee !important;
+            border-color: #f44336 !important;
+            color: #f44336 !important;
+            transform: translateY(-1px);
+        }
+
+        .logout-btn i {
+            font-size: 16px;
+            
+        }
+
+        .main-content {
+            padding-left: 0px !important; 
+            padding-right: 0px !important;
+        }
+
+        .content {
+            padding-left: 10px; 
+            padding-right: 10px;
+        }
+
+
+
+
+
+
+
+          /* Icônes cliquables */
+
+          /* 
+          
+            .action-btn i
+            {
+                font-size: 20px;
+                color: #666;
+                padding: 5px;
+            }
+           */
+
+
+          
+
+    .media-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #e8e9ea;
+    }
+
+    .media-icon.image-icon {
+        background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+        color: white;
+    }
+
+    .media-icon.video-icon {
+        background: linear-gradient(135deg, #FF7900 0%, #ff8f33 100%);
+        color: white;
+    }
+
+    .media-icon:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .media-icon i {
+        font-size: 20px;
+    }
+
+    /* Modal personnalisé */
+    .media-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .media-modal.active {
+        display: flex;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .media-modal-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        animation: zoomIn 0.3s ease;
+    }
+
+    @keyframes zoomIn {
+        from { transform: scale(0.8); }
+        to { transform: scale(1); }
+    }
+
+    .media-modal-content img,
+    .media-modal-content video {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .media-modal-close {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        background: #FF7900;
+        border: none;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .media-modal-close:hover {
+        background: #e66d00;
+        transform: rotate(90deg);
+    }
+
+    .media-modal-title {
+        position: absolute;
+        top: -50px;
+        left: 0;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .media-modal-title i {
+        color: #FF7900;
+    }
+
+    </style>
+
+    
+</head>
+
+
+
+<body class="">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- SIDEBAR -->
+            {% include "layout/sidebar.html" %}
+
+            <div class="col-md-10 main-content">
+                
+                {% include "layout/header.html" %}
+
+                <div class="content">
+
+                    {% block content %}
+                    
+                    {% endblock %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+
+          document.addEventListener("DOMContentLoaded", function() {
+        // attendre un léger timeout si les polices externes changent le layout
+        setTimeout(function() {
+            // Trouve tous les spans tronqués
+            document.querySelectorAll('.truncated-text').forEach(function(el) {
+            // si le texte déborde => on affiche l'icône associée
+            // (clientHeight vs scrollHeight)
+            if (el.scrollHeight > el.clientHeight + 1) {
+                // cherche l'icone dans le même wrapper
+                const wrapper = el.closest('.truncated-wrapper');
+                if (wrapper) {
+                const icon = wrapper.querySelector('.view-desc');
+                if (icon) icon.classList.remove('hidden');
+                }
+            }
+            });
+        }, 50); // petit délai pour laisser le rendu s'installer
+
+        // gestion du clic sur les icônes
+        document.querySelectorAll('.view-desc').forEach(function(icon) {
+            icon.addEventListener('click', function() {
+            const title = this.getAttribute('data-title') || 'Description';
+            const desc  = this.getAttribute('data-desc') || '';
+
+            // remplir le modal
+            document.getElementById('descModalLabel').textContent = title;
+            // utiliser textContent pour éviter l'HTML non désiré (sécurité)
+            document.getElementById('descModalBody').textContent = desc;
+
+            // ouvrir le modal via l'API Bootstrap 5
+            const modalEl = document.getElementById('descModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+            });
+        });
+        });
+
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,28 @@
+<div id="header">
+    <div class="header-content">
+        <h6 class="fw-bold">PANNEAU D'ADMINISTRATION</h6>
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="user-details">
+                <p class="user-name pb-1">{{ user.get_full_name|default:user.username }}</p>
+                <p class="user-role">
+                    {% if user.is_superuser %}
+                        Super Administrateur
+                    {% elif user.is_staff %}
+                        Administrateur
+                    {% endif %}
+                    
+                </p>
+            </div>
+            <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> Déconnexion
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>

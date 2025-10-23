@@ -1,0 +1,354 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Panneautage - Voie{% endblock %}
+
+{% block css %}
+
+    <style>
+
+          
+    .action-btn i
+        {
+            font-size: 18px;
+            color: #666;
+            padding: 7px;
+        }
+
+    .media-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #e8e9ea;
+    }
+
+    .media-icon.image-icon {
+        background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+        color: white;
+    }
+
+    .media-icon.video-icon {
+        background: linear-gradient(135deg, #FF7900 0%, #ff8f33 100%);
+        color: white;
+    }
+
+    .media-icon:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .media-icon i {
+        font-size: 20px;
+    }
+
+    /* Modal personnalisé */
+    .media-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .media-modal.active {
+        display: flex;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .media-modal-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        animation: zoomIn 0.3s ease;
+    }
+
+    @keyframes zoomIn {
+        from { transform: scale(0.8); }
+        to { transform: scale(1); }
+    }
+
+    .media-modal-content img,
+    .media-modal-content video {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .media-modal-close {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        background: #FF7900;
+        border: none;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .media-modal-close:hover {
+        background: #e66d00;
+        transform: rotate(90deg);
+    }
+
+    .media-modal-title {
+        position: absolute;
+        top: -50px;
+        left: 0;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .media-modal-title i {
+        color: #FF7900;
+    }
+
+    </style>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+    {% if pub %}
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert d-flex align-items-center justify-content-between shadow-sm p-3 my-4 border-0 rounded-3"
+                            style="background: linear-gradient(90deg, #e6f9ef 0%, #c2f0d5 100%); color:#206c37;">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-3" style="font-size: 22px;"></i>
+                                <div>
+                                    <strong style="font-size: 15px;">Succès :</strong>
+                                    <span style="font-size: 14px;">{{ message }}</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+      
+                <div class="row py-4">
+                    <div class="col-md-6 d-flex align-items-center pt-1">
+                        <h5 class="fw-bold">Gestion des publicités </h5>
+                    </div>
+                 
+                </div>
+
+                <!-- TABLE CONTAINER -->
+                <div class="table-container">
+                    <!-- TABLE HEADER -->
+                    <div class="row table-header">
+                      
+
+                        <div class="col-2">
+                            <div class="table-cell text-center">
+                                Titre
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="table-cell text-center">
+                                Description
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="table-cell">
+                                Image
+                            </div>
+                        </div>
+
+                        <div class="col-2">
+                            <div class="table-cell">
+                                Vidéo
+                            </div>
+                        </div>
+                       
+                        <div class="col-2">
+                            <div class="table-cell">
+                                Actions
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABLE LIGNE -->
+                    <div class="row table-row text-center">
+                        <div class="col-2">
+                            <div class="table-cell">
+                                    <div class="table-cell text-center">
+                                        {{ pub.titre }}
+                                    </div>
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <div class="table-cell">
+                                {{ pub.description }}
+                            </div>
+                        </div>
+
+                        <div class="col-2">
+                            <div class="table-cell">
+                                {% if pub.video %}
+
+                                    <div class="media-icon video-icon img-thumbnail" onclick="openVideoModal('{{ pub.video.url }}', '{{ pub.titre|escapejs }}')">
+                                        <i class="bi bi-play-circle-fill"></i>
+                                    </div>
+                             
+                                {% endif %}
+
+                                {% else %}
+                                    <p>Aucune publicité enregistrée</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        <div class="col-2">
+                            <div class="table-cell">
+
+                                {% if pub.image %}
+
+                                    <div class="media-icon image-icon img-thumbnail" onclick="openImageModal('{{ pub.image.url }}', '{{ pub.titre|escapejs }}')">
+                                        <i class="bi bi-image-fill"></i>
+                                    </div>
+
+                                {% else %}
+                                    <p>Aucune image trouvée</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-2">
+
+                            <a href="{% url 'edit_publicite' pub.id %}" >
+                                <div class="table-cell">
+                                    <button class="action-btn edit-btn">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                            </a>
+                        
+                         
+                        </div> 
+                    </div>
+
+                    <!-- Modal Image -->
+                    <div class="media-modal" id="imageModal" onclick="closeImageModal()">
+                        <div class="media-modal-content" onclick="event.stopPropagation()">
+                            <div class="media-modal-title">
+                                <i class="bi bi-image-fill"></i>
+                                <span id="imageModalTitle">Image</span>
+                            </div>
+                            <button class="media-modal-close" onclick="closeImageModal()">
+                                <i class="bi bi-x"></i>
+                            </button>
+                            <img id="modalImage" src="" alt="Image">
+                        </div>
+                    </div>
+
+                    <!-- Modal Vidéo -->
+                    <div class="media-modal" id="videoModal" onclick="closeVideoModal()">
+                        <div class="media-modal-content" onclick="event.stopPropagation()">
+                            <div class="media-modal-title">
+                                <i class="bi bi-play-circle-fill"></i>
+                                <span id="videoModalTitle">Vidéo</span>
+                            </div>
+                            <button class="media-modal-close" onclick="closeVideoModal()">
+                                <i class="bi bi-x"></i>
+                            </button>
+                            <video id="modalVideo" controls>
+                                <source id="modalVideoSource" src="" type="video/mp4">
+                            </video>
+                        </div>
+                    </div>
+
+
+{% block scripts %}
+    <script>
+    // Ouvrir modal image
+        function openImageModal(imageUrl, titre) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('modalImage');
+            const title = document.getElementById('imageModalTitle');
+            
+            img.src = imageUrl;
+            title.textContent = titre;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Fermer modal image
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Ouvrir modal vidéo
+        function openVideoModal(videoUrl, titre) {
+            const modal = document.getElementById('videoModal');
+            const video = document.getElementById('modalVideo');
+            const source = document.getElementById('modalVideoSource');
+            const title = document.getElementById('videoModalTitle');
+            
+            source.src = videoUrl;
+            video.load();
+            title.textContent = titre;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Fermer modal vidéo
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const video = document.getElementById('modalVideo');
+            
+            video.pause();
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Fermer avec la touche Échap
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
+                closeVideoModal();
+            }
+        });
+        
+    </script>
+
+{% endblock %}
+
+
+
+
+
+{% endblock %}
