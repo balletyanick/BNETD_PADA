@@ -2,6 +2,8 @@ from django import forms
 from .models import Suggestion
 from .models import Probleme
 from .models import publicites
+from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.forms import UserCreationForm
 
 
 class SuggestionForm(forms.ModelForm):
@@ -39,3 +41,20 @@ class PublicitesForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'type_media': forms.Select(attrs={'class': 'form-select'}),
         }
+
+
+
+
+class CustomUserForm(UserCreationForm):
+    email = forms.EmailField(required=True, label="Adresse e-mail")
+  
+    user_permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Permissions individuelles"
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2', 'is_staff', 'is_superuser', 'user_permissions']

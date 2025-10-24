@@ -14,6 +14,13 @@ from myapp.models import publicites
 from myapp.forms import PublicitesForm
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from myapp.forms import CustomUserForm
+from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
+
 
 # Seuls les utilisateurs is_staff=True peuvent accéder
 def staff_check(user):
@@ -41,6 +48,7 @@ def dashboard(request):
 
 # Liste des Utilisateurs
 @user_passes_test(staff_check)
+@permission_required('myapp.view_user', login_url='login')
 def users_list(request):
 
     query = request.GET.get("q")  # récupération du mot-clé
@@ -64,6 +72,7 @@ def users_list(request):
 
 # Liste des Voies
 @user_passes_test(staff_check)
+@permission_required('myapp.view_voie', login_url='login')
 def voies_list(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -91,6 +100,7 @@ def voies_list(request):
 
 # Liste des Suggestion
 @user_passes_test(staff_check)
+@permission_required('myapp.view_suggestion', login_url='login')
 def suggestion_list(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -115,8 +125,9 @@ def suggestion_list(request):
 
 
 
-# Liste des Suggestion
+# Liste des Problèmes
 @user_passes_test(staff_check)
+@permission_required('myapp.view_probleme', login_url='login')
 def problemes_list(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -141,6 +152,7 @@ def problemes_list(request):
 
 # Page Editer une publicité
 @user_passes_test(staff_check)
+@permission_required('myapp.change_publicites', login_url='login')
 def edit_publicite(request, id):
    
     pub = get_object_or_404(publicites, id=id)
@@ -163,6 +175,7 @@ def edit_publicite(request, id):
 
 # Liste des publicites
 @user_passes_test(staff_check)
+@permission_required('myapp.view_publicites', login_url='login')
 def afficher_publicite(request):
     
     pub = publicites.objects.first()  # il n’y a qu’une seule publicité
@@ -174,3 +187,43 @@ def afficher_publicite(request):
 def logout_view(request):
     logout(request)
     return redirect('login')  # ou le nom de ta page de connexion
+
+
+
+
+# Vérifie que seul un administrateur puisse créer un utilisateur @user_passes_test(lambda u: u.is_staff or u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
+@permission_required('myapp.add_user', login_url='login')
+def create_user(request):
+    if request.method == 'POST':
+        form = CustomUserForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.save()
+            form.save_m2m()  # pour enregistrer les groupes et permissions
+            messages.success(request, f"L'utilisateur {user.username} a été créé avec succès.")
+            return redirect('users_list')  # à créer plus bas
+    else:
+        form = CustomUserForm()
+    return render(request, 'create_user.html', {'form': form})
+
+
+#Supprimer Utilisateurs
+@permission_required('auth.delete_user', login_url='login')
+def delete_user(request, user_id):
+    # Seule la méthode POST doit supprimer
+    if request.method != 'POST':
+        messages.error(request, "Méthode invalide pour la suppression.")
+        return redirect('users_list')
+
+    user_to_delete = get_object_or_404(User, id=user_id)
+
+    # Empêcher un admin de se supprimer lui-même (optionnel mais recommandé)
+    if request.user == user_to_delete:
+        messages.error(request, "Vous ne pouvez pas vous supprimer vous-même.")
+        return redirect('users_list')
+
+    username = user_to_delete.username
+    user_to_delete.delete()
+    messages.success(request, f"L'utilisateur « {username} » a été supprimé.")
+    return redirect('users_list')

@@ -10,9 +10,13 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
 
     path('dashboard/', views.dashboard, name='dashboard'),
+
     path("users/", views.users_list, name="users_list"),
+    path('utilisateurs/supprimer/<int:user_id>/', views.delete_user, name='delete_user'),
+
     path('voies/', views.voies_list, name='voies_list'),
     path('suggestion/', views.suggestion_list, name='suggestion_list'),
     path('problemes/', views.problemes_list, name='problemes_list'),
@@ -21,7 +25,10 @@ urlpatterns = [
  
     path('afficher_publicite/', views.afficher_publicite, name='afficher_publicite'),
 
-    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+
+    path('utilisateurs_ajouter/', views.create_user, name='create_user'),
+
+
 ]
 
 

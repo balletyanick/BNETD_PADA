@@ -162,4 +162,4 @@ def signaler_probleme(request, qr_code):
 
 
 
-
+    

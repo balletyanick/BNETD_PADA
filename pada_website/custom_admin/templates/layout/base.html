@@ -270,9 +270,112 @@
         color: #FF7900;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+     .modal-content {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e8e9ea;
+        padding: 20px 25px;
+    }
+
+    .modal-header .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 25px;
+        background: white;
+    }
+
+    .modal-body p {
+        font-size: 14px;
+        color: #666;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .modal-username {
+        color: #f44336;
+        font-weight: 600;
+    }
+
+    .modal-footer {
+        padding: 20px 25px;
+        background: #f8f9fa;
+        border-top: 1px solid #e8e9ea;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .btn-modal-cancel {
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        background-color: white;
+        border: 1px solid #e8e9ea;
+        border-radius: 8px;
+        color: #666;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-modal-cancel:hover {
+        background-color: #f8f9fa;
+        border-color: #666;
+    }
+
+    .btn-modal-delete {
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        background-color: #f44336;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-modal-delete:hover {
+        background-color: #d32f2f;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+        .modal-footer {
+            flex-direction: column;
+        }
+
+        .btn-modal-cancel,
+        .btn-modal-delete {
+            width: 100%;
+        }
+    }
+
     </style>
 
-    
+
+
 </head>
 
 
@@ -288,6 +391,22 @@
                 {% include "layout/header.html" %}
 
                 <div class="content">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert d-flex align-items-center justify-content-between shadow-sm p-3 my-4 border-0 rounded-3 auto-dismiss-alert"
+                                style="background: linear-gradient(90deg, #e6f9ef 0%, #c2f0d5 100%); color:#206c37; transition: opacity 0.5s ease, transform 0.5s ease;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill me-3" style="font-size: 22px;"></i>
+                                    <div>
+                                        <strong style="font-size: 15px;">Succès :</strong>
+                                        <span style="font-size: 14px;">{{ message }}</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
 
                     {% block content %}
                     
@@ -340,6 +459,27 @@
         });
         });
 
+    </script>
+
+    
+    <script>
+    // Faire Disparaitre les messages apres quelque secondes 
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.auto-dismiss-alert');
+            
+            alerts.forEach(function(alert) {
+                // Après 3 secondes, commencer l'animation de disparition
+                setTimeout(function() {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                    
+                    // Après l'animation (0.5s), supprimer complètement l'élément
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }, 3000); // 3000ms = 3 secondes
+            });
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>

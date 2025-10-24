@@ -2,15 +2,18 @@
 
 {% block title %}Panneautage - Utilisateurs{% endblock %}
 
+
 {% block content %}
                 <div class="row pt-4">
                     <div class="col-md-6 d-flex align-items-center pt-1">
                         <h5 class="fw-bold">Gestion des utilisateurs</h5>
                     </div>
                     <div class="col-md-6 text-end">
-                        <button class="btn btn-warning text-white" id="addUtilisateur">
-                            <i class="bi bi-plus-circle me-2"></i>Ajouter un utilisateur
-                        </button>
+                        <a href="{% url 'create_user' %}">
+                            <button class="btn btn-warning text-white" id="addUtilisateur">
+                                <i class="bi bi-plus-circle me-2"></i>Ajouter un utilisateur
+                            </button>
+                        </a>
                     </div>
                 </div>
 
@@ -34,7 +37,7 @@
                                 N°
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-2">
                             <div class="table-cell">
                                 Nom D'utilisateur
                             </div>
@@ -45,15 +48,22 @@
                             </div>
                         </div>
                         <div class="col-2">
-                            <div class="table-cell">
-                                Dernière Connexion
+                            <div class="table-cell text-center">
+                                Date de Connexion
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-2">
                             <div class="table-cell">
                                 Date de Création
                             </div>
                         </div>
+
+                        <div class="col-2">
+                            <div class="table-cell">
+                                Rôle
+                            </div>
+                        </div>
+
                         <div class="col-1">
                             <div class="table-cell text-end">
                                 Actions
@@ -69,7 +79,7 @@
                                 {{ forloop.counter }}
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-2">
                             <div class="table-cell">
                                {{ user.username }} 
                                {% comment %} {{ user.is_superuser }} {% endcomment %}
@@ -85,27 +95,42 @@
                                 {{ user.last_login|date:"d/m/Y" }}
                             </div>
                         </div>
-                        <div class="col-3">
+                        <div class="col-2">
                             <div class="table-cell">
                                 {{ user.date_joined|date:"d/m/Y" }}
                             </div>
                         </div>
+
+                        <div class="col-2">
+                            <div class="table-cell">
+                                {% if user.is_superuser %}
+                                    Super Admin
+                                {% elif user.is_staff %}
+                                    Utilisateur
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <div class="col-1">
                             <div class="table-cell text-end">
                                 <button class="action-btn edit-btn">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <button class="action-btn delete-btn">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+
+                                 {% if perms.auth.delete_user and request.user != user %}
+                                    <button type="button"
+                                            class="action-btn delete-btn btn-open-delete-modal"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#confirmDeleteModal"
+                                            data-user-id="{{ user.id }}"
+                                            data-username="{{ user.username }}">
+                                           <i class="bi bi-trash"></i>
+                                    </button>
+                                {% endif %}
                                
                             </div>
                         </div>
                     </div>
-                     {% comment %} {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center">Aucun utilisateur trouvé</td>
-                    </tr> {% endcomment %}
                     {% endfor %}
                 </div>
 
@@ -165,4 +190,68 @@
                         </ul>
                     </nav>
                 </div>
+
+                {# Modal de confirmation (placez-le en bas de la page) #}
+                <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form id="deleteUserForm" method="post" action="">
+                                {% csrf_token %}
+                                
+                                <!-- Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="confirmDeleteLabel">
+                                        Confirmer la suppression
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="modal-body">
+                                    <p id="deleteModalBody">
+                                        Êtes-vous sûr de vouloir supprimer cet utilisateur ?
+                                    </p>
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">
+                                        Annuler
+                                    </button>
+                                    <button type="submit" class="btn-modal-delete">
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+
+                {% block scripts %}
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            var confirmModal = document.getElementById('confirmDeleteModal');
+                            var deleteForm = document.getElementById('deleteUserForm');
+                            var modalBody = document.getElementById('deleteModalBody');
+
+                            // Déclenché quand le modal s'ouvre (Bootstrap 'show.bs.modal')
+                            confirmModal.addEventListener('show.bs.modal', function (event) {
+                                var button = event.relatedTarget; // bouton qui a déclenché le modal
+                                var userId = button.getAttribute('data-user-id');
+                                var username = button.getAttribute('data-username');
+
+                                // Construire l'URL d'action (assure-toi que l'URL correspond à ton urls.py)
+                                // Exemple si ton URL est /admins/utilisateurs/supprimer/<id>/ alors adapte.
+                                var actionUrl = "{% url 'delete_user' 0 %}".replace('/0/', '/' + userId + '/');
+
+                                deleteForm.action = actionUrl;
+
+                                // Personnaliser le message
+                                modalBody.textContent = "Voulez-vous vraiment supprimer l'utilisateur \"" + username + "\" ? Cette action est irréversible.";
+                            });
+                        });
+                    </script>
+                {% endblock %}
+
 {% endblock %}

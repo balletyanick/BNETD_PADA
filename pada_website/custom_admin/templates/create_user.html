@@ -1,0 +1,15 @@
+{% extends 'layout/base.html' %}
+{% block title %}Créer un utilisateur{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h4 class="fw-bold mb-3">➕ Ajouter un nouvel utilisateur</h4>
+
+    <form method="post" class="border p-3 rounded shadow-sm bg-light">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Créer l’utilisateur</button>
+        <a href="{% url 'users_list' %}" class="btn btn-secondary">Annuler</a>
+    </form>
+</div>
+{% endblock %}

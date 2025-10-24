@@ -9,9 +9,9 @@
                 <p class="user-name pb-1">{{ user.get_full_name|default:user.username }}</p>
                 <p class="user-role">
                     {% if user.is_superuser %}
-                        Super Administrateur
+                        Super Admin
                     {% elif user.is_staff %}
-                        Administrateur
+                        Utilisateur
                     {% endif %}
                     
                 </p>
