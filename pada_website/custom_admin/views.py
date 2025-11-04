@@ -20,6 +20,12 @@ from django.contrib.auth.models import User
 from myapp.forms import CustomUserForm
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
+from django.contrib import messages
+from myapp.forms import AdminUserEditForm, AdminSetPasswordForm
+from django.db.models import Q
 
 
 # Seuls les utilisateurs is_staff=True peuvent accéder
@@ -208,6 +214,7 @@ def create_user(request):
     return render(request, 'create_user.html', {'form': form})
 
 
+
 #Supprimer Utilisateurs
 @permission_required('auth.delete_user', login_url='login')
 def delete_user(request, user_id):
@@ -227,3 +234,58 @@ def delete_user(request, user_id):
     user_to_delete.delete()
     messages.success(request, f"L'utilisateur « {username} » a été supprimé.")
     return redirect('users_list')
+
+
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url='login')
+def edit_user(request, user_id):
+    user_obj = get_object_or_404(User, id=user_id)
+
+    # Protection : empêcher de retirer le dernier superuser
+    def would_remove_last_superuser(post_data):
+        # si on tente de désactiver is_superuser pour cet utilisateur
+        new_is_super = post_data.get('is_superuser') == 'on'
+        if user_obj.is_superuser and not new_is_super:
+            # combien de superusers actifs autres que celui-ci ?
+            other_super_count = User.objects.filter(is_superuser=True).exclude(id=user_obj.id).count()
+            return other_super_count == 0
+        return False
+
+    if request.method == 'POST':
+        if 'save_user' in request.POST:
+            if would_remove_last_superuser(request.POST):
+                messages.error(request, "Impossible de retirer le statut superutilisateur — il doit rester au moins un superutilisateur.")
+                return redirect('edit_user', user_id=user_obj.id)
+
+            form = AdminUserEditForm(request.POST, instance=user_obj)
+            if form.is_valid():
+                form.save()
+                # groups & user_permissions m2m déjà gérés par form.save_m2m() si commit=False used;
+                messages.success(request, f"Utilisateur « {user_obj.username} » mis à jour.")
+                return redirect('users_list')
+            else:
+                messages.error(request, "Erreur dans le formulaire. Vérifiez les champs.")
+                pw_form = AdminSetPasswordForm(user_obj)  # pour réafficher
+        elif 'change_password' in request.POST:
+            pw_form = AdminSetPasswordForm(user_obj, request.POST)
+            form = AdminUserEditForm(instance=user_obj)  # pour afficher
+            if pw_form.is_valid():
+                pw_form.save()
+                messages.success(request, f"Mot de passe de « {user_obj.username} » mis à jour.")
+                return redirect('users_list')
+            else:
+                messages.error(request, "Erreur dans le formulaire de mot de passe.")
+        else:
+            # requête POST non reconnue
+            return redirect('users_list')
+    else:
+        form = AdminUserEditForm(instance=user_obj)
+        pw_form = AdminSetPasswordForm(user_obj)
+
+    context = {
+        'form': form,
+        'pw_form': pw_form,
+        'user_obj': user_obj,
+    }
+    return render(request, 'edit_user.html', context)

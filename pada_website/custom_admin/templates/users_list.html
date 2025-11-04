@@ -113,9 +113,14 @@
 
                         <div class="col-1">
                             <div class="table-cell text-end">
-                                <button class="action-btn edit-btn">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
+                            
+                                {% if user.is_superuser %}
+                                    <a href="{% url 'edit_user' user.id %}">
+                                        <button class="action-btn edit-btn">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </a>
+                                {% endif %}
 
                                  {% if perms.auth.delete_user and request.user != user %}
                                     <button type="button"

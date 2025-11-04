@@ -4,6 +4,8 @@ from .models import Probleme
 from .models import publicites
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.forms import UserChangeForm, SetPasswordForm
 
 
 class SuggestionForm(forms.ModelForm):
@@ -58,3 +60,29 @@ class CustomUserForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2', 'is_staff', 'is_superuser', 'user_permissions']
+
+
+
+
+class AdminUserEditForm(UserChangeForm):
+    password = None  # on masque le champ password par défaut du UserChangeForm
+
+    user_permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.exclude(content_type__app_label='admin'),  # optionnel: filtrer
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Permissions individuelles"
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'is_active', 'is_staff', 'is_superuser', 'user_permissions']
+        labels = {
+            'is_active': 'Actif',
+            'is_staff': 'Membre du staff (accès admin)',
+            'is_superuser': 'Superutilisateur (tous droits)',
+        }
+
+class AdminSetPasswordForm(SetPasswordForm):
+    # hérite de SetPasswordForm (demande new_password1, new_password2)
+    pass
