@@ -11,7 +11,6 @@
                     <i class="bi bi-grid-fill me-2"></i> Dashboard
                 </a>
 
-
                 
                 {% if user.is_authenticated and perms.myapp.view_voie %}
                     <a href="{% url 'voies_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'voies_list' %}active{% endif %}">

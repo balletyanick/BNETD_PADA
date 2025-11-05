@@ -20,6 +20,9 @@ urlpatterns = [
 
 
     path('voies/', views.voies_list, name='voies_list'),
+    path('edit_voies/', views.edit_voies, name='edit_voies'),
+    path('dashboard_voies/', views.dashboard_voies, name='dashboard_voies'),
+
     path('suggestion/', views.suggestion_list, name='suggestion_list'),
     path('problemes/', views.problemes_list, name='problemes_list'),
 

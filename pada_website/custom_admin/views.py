@@ -289,3 +289,10 @@ def edit_user(request, user_id):
         'user_obj': user_obj,
     }
     return render(request, 'edit_user.html', context)
+
+
+def edit_voies(request):
+    return render(request, 'edit_voies.html')
+
+def dashboard_voies(request):
+    return render(request, 'dashboard_voies.html')

@@ -123,6 +123,10 @@
         color: #0eb84cff;
     }
 
+     .action-btn.validate-btn i {
+        color: rgb(149, 10, 128);
+    }
+
     .action-btn.delete-btn i {
         color: #f44336;
     }

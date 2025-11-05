@@ -119,19 +119,31 @@
                         </div>
 
                         <div class="col-1">
-                            <div class="table-cell">
-                                
-                                 {% if voie.description|length > 50 %}  {# Affiche l’icône seulement si texte long #}
-                                    <button class="action-btn delete-btn d-flex justify-content-center align-items-center">
-                                        <i class="bi bi-eye text-primary" 
-                                            style="cursor:pointer;" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#descModal{{ voie.id }}">
-                                        </i>  
-                                    </button>
-                                {% endif %}
-                               
-                            </div>
+
+                                <div class="table-cell">
+
+                                    <a href="{% url 'edit_voies'%}" >
+                                        <button class="action-btn edit-btn">
+                                                <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </a>
+
+                                    <a href="{% url 'dashboard_voies'%}" >
+                                        <button class="action-btn validate-btn">
+                                                <i class="bi bi-check-circle"></i>
+                                        </button>
+                                    </a>
+
+                                    {% if voie.description|length > 50 %}  {# Affiche l’icône seulement si texte long #}
+                                        <button class="action-btn delete-btn d-flex justify-content-center align-items-center">
+                                            <i class="bi bi-eye text-primary" 
+                                                style="cursor:pointer;" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#descModal{{ voie.id }}">
+                                            </i>  
+                                        </button>
+                                    {% endif %}
+                                </div>
                         </div>
                     </div>
 
