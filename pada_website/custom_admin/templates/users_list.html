@@ -114,7 +114,7 @@
                         <div class="col-1">
                             <div class="table-cell text-end">
                             
-                                {% if user.is_superuser %}
+                                {% if perms.auth.edit_user and request.user != user %}
                                     <a href="{% url 'edit_user' user.id %}">
                                         <button class="action-btn edit-btn">
                                             <i class="bi bi-pencil"></i>

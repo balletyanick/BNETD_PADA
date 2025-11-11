@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 import os
+from django.contrib.auth.models import User
+
 
 class Voie(models.Model):
     id = models.AutoField(primary_key=True)
@@ -12,10 +14,50 @@ class Voie(models.Model):
     description = models.CharField(max_length=255)
     entites_territoriales_2 = models.TextField()
     photo_personnalite = models.CharField(max_length=255, null=True, blank=True)
+
+    # --- Nouveaux champs pour le processus de validation ---
+    description_proposee = models.TextField(null=True, blank=True)
+    suggestion_cca = models.TextField(null=True, blank=True)
+    suggestion_mo = models.TextField(null=True, blank=True)
+
+    STATUT_CHOICES = [
+        ('aucune_modification', 'Aucune modification'),
+        ('en_attente_cca', 'En attente de validation CCA'),
+        ('en_attente_mo', 'En attente de validation MO'),
+        ('retour_toponymie', 'Retour à Toponymie'),
+        ('validee_finalement', 'Validée définitivement'),
+        ('rejete', 'Rejetée'),
+    ]
+
+    statut = models.CharField(
+        max_length=30,
+        choices=STATUT_CHOICES,
+        null=True,
+        blank=True,
+        default='aucune_modification'
+    )
+
+    date_derniere_modification = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         db_table = 'panneautage'
         managed = False
+        permissions = [
+            ("view_dashboard_voies", "Voir Dashboard Voies"),
+            ("can_add_suggestion_voie", "Peut ajouter une nouvelle description de voie"),
+
+            ("valider_cca", "Valider Par CCA"),
+            ("rejeter_cca", "Refuser par CCA"),
+            ("ajouter_suggestion_cca", "Ajouter suggestion Par CCA"),
+
+            ("valider_mo", "Valider Par MO"),
+            ("rejeter_mo", "Refuser Par MO"),
+            ("ajouter_suggestion_mo", "Ajouter suggestion Par MO"),
+
+            ("voir_suggestion_voie", "Voir suggestion voie"),
+            ("voir_suggestion_voie_attent_mo", "Voir suggestion voie attente MO"),
+            ("voir_suggestion_voie_attente_cca", "Voir suggestion voie en attente CCA"),
+        ]
 
     def __str__(self):
         return f"{self.nom_voies} - {self.quartier}"
@@ -146,6 +188,10 @@ class publicites(models.Model):
 
     def has_video(self):
         return bool(self.video)
+    
+
+
+
 
 
 

@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
@@ -26,7 +27,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from myapp.forms import AdminUserEditForm, AdminSetPasswordForm
 from django.db.models import Q
-
+from django.http import JsonResponse
 
 # Seuls les utilisateurs is_staff=True peuvent accéder
 def staff_check(user):
@@ -43,11 +44,19 @@ def dashboard(request):
     total_problemes = Probleme.objects.count()
     total_suggestions = Suggestion.objects.count()
 
+    # Compteurs par statut
+    voies_en_attente_cca = Voie.objects.filter(statut='en_attente_cca').count()
+    voies_en_attente_mo = Voie.objects.filter(statut='en_attente_mo').count()
+    voies_validees_finalement = Voie.objects.filter(statut='validee_finalement').count()
+
     context = {
         'total_utilisateurs': total_utilisateurs,
         'total_voies': total_voies,
         'total_problemes': total_problemes,
         'total_suggestions': total_suggestions,
+        'voies_en_attente_cca': voies_en_attente_cca,
+        'voies_en_attente_mo': voies_en_attente_mo,
+        'voies_validees_finalement': voies_validees_finalement,
     }
     return render(request, 'dashboard.html', context)
 
@@ -92,7 +101,7 @@ def voies_list(request):
             Q(entites_territoriales_2__icontains=query)
         )
 
-    paginator = Paginator(voies, 50)  # 👉 10 enregistrements par page
+    paginator = Paginator(voies, 50)  # 10 enregistrements par page
 
     page_number = request.GET.get("page")  # récupère ?page=...
     page_obj = paginator.get_page(page_number)
@@ -238,6 +247,7 @@ def delete_user(request, user_id):
 
 
 
+#Modifier Utilisateurs
 @user_passes_test(lambda u: u.is_superuser, login_url='login')
 def edit_user(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
@@ -291,8 +301,231 @@ def edit_user(request, user_id):
     return render(request, 'edit_user.html', context)
 
 
-def edit_voies(request):
-    return render(request, 'edit_voies.html')
 
-def dashboard_voies(request):
-    return render(request, 'dashboard_voies.html')
+#Editer description de voie
+@permission_required('myapp.change_voie', login_url='login')
+def edit_voies(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+
+    if request.method == 'POST':
+        nouvelle_description = request.POST.get('description')
+        voie.description = nouvelle_description
+        voie.save()
+        messages.success(request, "Description mise à jour avec succès ")
+        return redirect('voies_list')
+
+    context = {
+        'voie': voie,
+    }
+    return render(request, 'edit_voies.html', context)
+
+
+# Voir le dashboard d'une voie
+@permission_required('myapp.view_dashboard_voies', login_url='login')
+def dashboard_voies(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+
+    return render(request, 'dashboard_voies.html', {'voie': voie})
+
+
+# Valider une nouvelle description par le CCA
+def valider_cca(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+    
+    if request.method == 'POST':
+        voie.statut = 'en_attente_mo'
+        voie.date_derniere_modification = timezone.now()
+        voie.save()
+        messages.success(request, f"La voie '{voie.nom_voies}' a été validée par la CCA. En attente de validation MO.")
+
+        # Si c’est une requête AJAX → renvoyer un signal de redirection
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})
+        
+        # Sinon, rediriger normalement
+        return redirect('suggestion_voie_list')
+    return JsonResponse({'error': 'Méthode non autorisée'}, status=400)
+
+
+# Rejeter une nouvelle description par le CCA
+def rejeter_cca(request, voie_id):
+
+    voie = get_object_or_404(Voie, id=voie_id)
+
+    if request.method == 'POST':
+        voie.statut = 'retour_toponymie'
+        voie.date_derniere_modification = timezone.now()
+        voie.save()
+        messages.warning(request, f"La voie '{voie.nom_voies}' a été renvoyée à la Toponymie.")
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})
+        return redirect('suggestion_voie_list')
+    
+    return JsonResponse({'error': 'Méthode non autorisée'}, status=400)
+
+
+# Ajouter une nouvelle description pour commencer le processus
+@permission_required('myapp.can_add_suggestion_voie', login_url='login')
+def ajouter_suggestion_voie(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+
+    if request.method == 'POST':
+        nouvelle_description = request.POST.get('description_proposee')
+        if nouvelle_description:
+            voie.description_proposee = nouvelle_description
+            voie.statut = 'en_attente_cca'  # verrouille la voie pour Toponymie
+            voie.date_derniere_modification = timezone.now()
+            voie.save()
+            messages.success(request, "Proposition envoyée, en attente de validation CCA.")
+            return redirect('suggestion_voie_list')  # retourne vers la page de liste
+        else:
+            messages.warning(request, "Veuillez saisir une description.")
+
+    return render(request, 'ajouter_suggestion_voie.html', {'voie': voie})
+
+
+
+# Liste des suggestions voies 
+@permission_required('myapp.voir_suggestion_voie', login_url='login')
+def suggestion_voie_list(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    voies = Voie.objects.all().order_by("id")
+
+    if query:
+        voies = voies.filter(
+            Q(nom_voies__icontains=query) |
+            Q(quartier__icontains=query) |
+            Q(description__icontains=query) |
+            Q(entites_territoriales_2__icontains=query)
+        )
+
+    paginator = Paginator(voies, 50)  # 10 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "suggestion_voie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+
+# Liste des suggestions voies en attente de validation du CCA
+@permission_required('myapp.voir_suggestion_voie', login_url='login')
+def suggestion_voie_list_en_attente_cca(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    voies = Voie.objects.filter(statut='en_attente_cca').order_by('id')
+
+    if query:
+        voies = voies.filter(
+            Q(nom_voies__icontains=query) |
+            Q(quartier__icontains=query) |
+            Q(description__icontains=query) |
+            Q(entites_territoriales_2__icontains=query)
+        )
+
+    paginator = Paginator(voies, 50)  # 10 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "suggestion_voie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+
+# Liste des suggestions voies en attente de validation du MO
+@permission_required('myapp.voir_suggestion_voie', login_url='login')
+def suggestion_voie_list_en_attente_mo(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    voies = Voie.objects.filter(statut='en_attente_mo').order_by('id')
+
+    if query:
+        voies = voies.filter(
+            Q(nom_voies__icontains=query) |
+            Q(quartier__icontains=query) |
+            Q(description__icontains=query) |
+            Q(entites_territoriales_2__icontains=query)
+        )
+
+    paginator = Paginator(voies, 50)  # 10 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "suggestion_voie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+# Ajouter une suggestion par le CCA
+def ajouter_suggestion_cca(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+    
+    if request.method == 'POST':
+        suggestion = request.POST.get('suggestion_cca')
+        if suggestion:
+            voie.suggestion_cca = suggestion
+            voie.date_derniere_modification = timezone.now()
+            voie.save()
+            messages.success(request, f"Suggestion ajoutée avec succès pour la voie « {voie.nom_voies} ».")
+        else:
+            messages.warning(request, "Veuillez entrer une suggestion avant d’envoyer.")
+    
+    return redirect('suggestion_voie_list')
+
+
+# Ajouter une suggestion par le MO
+def ajouter_suggestion_mo(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+    
+    if request.method == 'POST':
+        suggestion = request.POST.get('suggestion_mo')
+        if suggestion:
+            voie.suggestion_mo = suggestion
+            voie.date_derniere_modification = timezone.now()
+            voie.save()
+            messages.success(request, f"Suggestion du MO ajoutée avec succès pour la voie « {voie.nom_voies} ».")
+        else:
+            messages.warning(request, "Veuillez entrer une suggestion avant d’envoyer.")
+    
+    return redirect('suggestion_voie_list')
+
+
+# Validation par le MO
+def valider_mo(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+
+    # Si une nouvelle description a été proposée, elle devient la description officielle
+    if voie.description_proposee:
+        voie.description = voie.description_proposee
+
+    voie.statut = 'validee_finalement'
+    voie.date_derniere_modification = timezone.now()
+    voie.save()
+
+    messages.success(
+        request,
+        f"La voie « {voie.nom_voies} » a été validée définitivement. La nouvelle description a été enregistrée."
+    )
+
+    return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})
+
+
+
+# Rejet par le MO
+def rejeter_mo(request, voie_id):
+    voie = get_object_or_404(Voie, id=voie_id)
+    voie.statut = 'retour_toponymie'
+    voie.date_derniere_modification = timezone.now()
+    voie.save()
+    messages.warning(request, f"La voie « {voie.nom_voies} » a été renvoyée à la Toponymie.")
+    return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})

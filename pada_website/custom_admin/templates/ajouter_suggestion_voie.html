@@ -309,29 +309,32 @@
 
         <div class="form-container">
             <div class="form-header">
-                <h4><i class="bi bi-pin-map-fill me-2" style="color: #FF7900;"></i>Voies </h4>
+                <h4><i class="bi bi-newspaper me-2" style="color: #FF7900;"></i> Suggestion de la description d'une voie </h4>
+                
                 <p> Nom de la voie : {{ voie.nom_voies }} </p>
                 <p> Description de la voie : {{ voie.description|default:"Pas de description fournie." }} </p>
+                <p> Suggestion CCA  : {{ voie.suggestion_cca|default:"Pas de suggestion." }} </p>
+                <p> Suggestion MO  : {{ voie.suggestion_mo|default:"Pas de suggestion." }} </p>
 
             </div>
 
             <form method="POST"   id="videoForm">
                 {% csrf_token %}
 
-                <!-- Description -->
+                <!-- Suggestion voie -->
                 <div class="form-group">
                     <label for="description" class="form-label">
                         <i class="bi bi-text-left"></i>
-                        Description <span class="required"></span>
+                        Suggestion de la description de la voie <span class="required"></span>
                     </label>
                     <textarea 
                         class="form-control" 
                         id="description"
-                        name="description"
+                        name="description_proposee"
                         rows="5" 
                         placeholder="Saisir la description ..." 
                         required
-                    ></textarea>
+                    >{{ voie.description_proposee|default:voie.description|default:"Aucune description" }}</textarea>
                 </div>
 
                 <!-- Actions -->

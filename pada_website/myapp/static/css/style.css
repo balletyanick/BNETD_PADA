@@ -124,11 +124,25 @@
     }
 
      .action-btn.validate-btn i {
-        color: rgb(149, 10, 128);
+        color: rgb(229, 212, 27);
+    }
+
+      .action-btn.warning-btn i {
+        color: rgb(173, 11, 35);
+    }
+
+    
+
+    .action-btn.ajouter-btn i {
+        color: black;
+    }
+
+    .action-btn.ajouter-btn{
+        margin-right: 10px;
     }
 
     .action-btn.delete-btn i {
-        color: #f44336;
+        color: #9f1006;
     }
 
     #addUtilisateur {

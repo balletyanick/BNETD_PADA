@@ -8,6 +8,7 @@
                 <div class="stats-container">
                     <div class="row g-4">
                         <!-- Card 1: Utilisateurs -->
+                        {% if perms.myapp.view_user %}
                         <div class="col-md-3">
                             <div class="stat-card">
                                 <div class="stat-header">
@@ -19,8 +20,10 @@
                                 <div class="stat-value"> {{ total_utilisateurs }} </div>
                             </div>
                         </div>
+                        {% endif %}
 
                         <!-- Card 2: Voies -->
+                        {% if perms.myapp.view_voie %}
                         <div class="col-md-3">
                             <div class="stat-card">
                                 <div class="stat-header">
@@ -32,8 +35,10 @@
                                 <div class="stat-value"> {{ total_voies }} </div>
                             </div>
                         </div>
+                        {% endif %}
 
                         <!-- Card 3: Panneaux -->
+                        {% if perms.myapp.view_probleme %}
                         <div class="col-md-3">
                             <div class="stat-card">
                                 <div class="stat-header">
@@ -45,8 +50,10 @@
                                 <div class="stat-value"> {{ total_problemes }} </div>
                             </div>
                         </div>
+                        {% endif %}
 
                         <!-- Card 4: Projets -->
+                        {% if perms.myapp.view_suggestion %}
                         <div class="col-md-3">
                             <div class="stat-card">
                                 <div class="stat-header">
@@ -58,6 +65,57 @@
                                 <div class="stat-value"> {{ total_suggestions }} </div>
                             </div>
                         </div>
+                        {% endif %}
+
+
+                        {% if perms.myapp.suggestion_cca %}
+                        <div class="col-md-3">
+                            <a href="{% url 'suggestion_voie_list' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-folder-fill"></i>
+                                        </div>
+                                        <div class="stat-title"> Desc. en attente CCA  </div>
+                                    </div>
+                                    <div class="stat-value">  {{ voies_en_attente_cca }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% if perms.myapp.voir_suggestion_voie %}
+                        <div class="col-md-3">
+                            <a href="{% url 'suggestion_voie_list' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-folder-fill"></i>
+                                        </div>
+                                        <div class="stat-title">Desc. en attente MO  </div>
+                                    </div>
+                                    <div class="stat-value">  {{ voies_en_attente_mo }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% if perms.myapp.voir_suggestion_voie %}
+                        <div class="col-md-3">
+                            <a href="{% url 'suggestion_voie_list' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-folder-fill"></i>
+                                        </div>
+                                        <div class="stat-title">Desc. validées  </div>
+                                    </div>
+                                    <div class="stat-value">  {{ voies_validees_finalement }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+
                     </div>
                 </div>
           

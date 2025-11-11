@@ -5,7 +5,7 @@
 {% block content %}
                 <div class="row pt-4">
                     <div class="col-md-6 d-flex align-items-center pt-1">
-                        <h5 class="fw-bold">Gestion des voies</h5>
+                        <h5 class="fw-bold">Gestion des descriptions des voies</h5>
                     </div>
                     {% comment %} <div class="col-md-6 text-end">
                         <button class="btn btn-warning text-white" id="addUtilisateur">
@@ -37,31 +37,31 @@
 
                         <div class="col-1">
                             <div class="table-cell text-center">
-                                Images
+                                Voie
                             </div>
                         </div>
                         <div class="col-2">
                             <div class="table-cell text-center">
-                                Commune
+                                Suggestion CCA
                             </div>
                         </div>
                         <div class="col-2">
                             <div class="table-cell">
-                                Quartier
+                                Suggestion MO   
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="table-cell text-center">
+                                Novelle description
                             </div>
                         </div>
                         <div class="col-2">
                             <div class="table-cell">
-                                Voies
+                                Description Actuelle
                             </div>
                         </div>
-                        <div class="col-3">
-                            <div class="table-cell">
-                                Description
-                            </div>
-                        </div>
-                        <div class="col-1">
-                            <div class="table-cell text-end">
+                        <div class="col-2">
+                            <div class="table-cell text-center">
                                 Actions
                             </div>
                         </div>
@@ -78,36 +78,42 @@
 
                         <div class="col-1">
                             <div class="table-cell">
-                                    <div class="table-cell text-center">
-                                        {% if voie.photo_personnalite %}
-                                            <img src="{{ voie.get_absolute_photo_url }}" 
-                                                alt="Photo"
-                                                class="img-thumbnail"
-                                                style="max-height:50px; max-width:50px; object-fit:cover;">
-                                        {% else %}
-                                            <i class="bi bi-image text-muted fs-4" title="Aucune photo"></i>
-                                        {% endif %}
-                                    </div>
+                                 {{ voie.nom_voies }}
+                            </div>
+                        </div>
+
+                         <div class="col-2">
+                            <div class="table-cell">
+                                {% if voie.suggestion_cca %}
+                                    <span class="truncated-text">{{ voie.suggestion_cca }}</span>
+                                {% else %}
+                                    <span> </span>
+                                {% endif %}
                             </div>
                         </div>
 
                         <div class="col-2">
                             <div class="table-cell">
-                                {{ voie.entites_territoriales_2 }}
+                                {% if voie.suggestion_mo %}
+                                    <span class="truncated-text">{{ voie.suggestion_mo }}</span>
+                                {% else %}
+                                    <span> </span>
+                                {% endif %}
                             </div>
                         </div>
+                       
                         <div class="col-2">
                             <div class="table-cell">
-                                {{ voie.quartier }}
-                            </div>
-                        </div>
-                        <div class="col-2">
-                            <div class="table-cell">
-                                {{ voie.nom_voies }} 
+                                 
+                                {% if voie.description_proposee %}
+                                    <span class="truncated-text">{{ voie.description_proposee }}</span>
+                                {% else %}
+                                    <span> </span>
+                                {% endif %}
                             </div>
                         </div>
 
-                        <div class="col-3 text-start">
+                        <div class="col-2 text-start">
                             <div class="table-cell">
                                 {% if voie.description %}
                                     <span class="truncated-text">{{ voie.description }}</span>
@@ -118,21 +124,72 @@
                             </div>
                         </div>
 
-                        <div class="col-1">
+                        <div class="col-2">
 
                                 <div class="table-cell">
+                                        <button  
+                                            class="action-btn 
+                                                {% if voie.statut == 'retour_toponymie' %}
+                                                    delete-btn
+                                                {% elif voie.description_proposee %}
+                                                    edit-btn
+                                                {% else %}
+                                                    delete-btn
+                                                {% endif %}" 
+                                            title="Suggestion Toponymie">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
 
-                                    {% if perms.myapp.can_add_suggestion_voie %}
-                                    <a href="{% url 'edit_voies' voie.id %}">
-                                        <button class="action-btn edit-btn">
-                                                <i class="bi bi-pencil"></i>
+
+                                        <button 
+                                            class="action-btn 
+                                            {% if voie.statut == 'en_attente_cca' %}validate-btn
+                                            {% elif voie.statut == 'validee_finalement' %}edit-btn
+                                            {% elif voie.statut == 'en_attente_mo' %}edit-btn
+                                            {% else %}delete-btn{% endif %}" 
+                                            title="Validation CCA">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+
+                                        <button 
+                                            class="action-btn 
+                                            {% if voie.statut == 'en_attente_cca' %}delete-btn
+                                            {% elif voie.statut == 'validee_finalement' %}edit-btn
+                                            {% elif voie.statut == 'en_attente_mo' %}validate-btn
+                                            {% else %}delete-btn{% endif %}" 
+                                            title="Validation CCA">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+
+
+                                    {% if perms.myapp.view_dashboard_voies %}
+                                    <a href="{% url 'dashboard_voies' voie.id %}" >
+                                        <button class="action-btn" title="Statut de validation">
+                                                <i class="bi bi-eye-fill"></i>
                                         </button>
                                     </a>
                                     {% endif %}
 
 
+                                    {% if perms.myapp.can_add_suggestion_voie %}
+                                        <a href="{% url 'ajouter_suggestion_voie' voie.id %}">
+                                           {% if voie.description_proposee %}
+                                                <!-- Bouton modifier -->
+                                                <button class="action-btn edit-btn" title="Modifier la description proposée">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </button>
+                                            {% else %}
+                                                <!-- Bouton ajouter -->
+                                                <button class="action-btn ajouter-btn" title="Ajouter une nouvelle description">
+                                                    <i class="bi bi-plus-circle-fill"></i>
+                                                </button>
+                                            {% endif %}
+
+                                        </a>
+                                    {% endif %}
+
                                     {% if voie.description|length > 50 %}  {# Affiche l’icône seulement si texte long #}
-                                        <button class="action-btn delete-btn d-flex justify-content-center align-items-center">
+                                        <button class="action-btn delete-btn d-flex justify-content-center align-items-center" title="Aller au tableau de bord des voies">
                                             <i class="bi bi-eye text-primary" 
                                                 style="cursor:pointer;" 
                                                 data-bs-toggle="modal" 

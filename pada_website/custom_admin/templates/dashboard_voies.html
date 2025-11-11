@@ -1,17 +1,63 @@
 {% extends "layout/base.html" %}
 
-{% block title %}Panneautage - Publicité {% endblock %}
+{% block title %}Panneautage - Editer Voies {% endblock %}
 
 {% block content %}
 
+
     <style>
-      
+
+    .validation-status {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 10px;
+        display: inline-block;
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+        text-align: center;
+        }
+
+        /* ✅ Validée définitivement */
+        .validation-status.validated {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        }
+
+        /* 🕓 En attente (CCA ou MO) */
+        .validation-status.pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+        }
+
+        /* 🔁 Retour à la Toponymie */
+        .validation-status.returned {
+        background-color: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+        }
+
+        /* ⚪ Aucun changement */
+        .validation-status.neutral {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        }
+
+        /* ❌ Rejetée */
+        .validation-status.rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        }
+
 
         .dashboard-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 10px; 
-            padding-top: 20px; 
+            padding: 10px;
+            padding-top: 20px;
         }
 
         .dashboard-header {
@@ -33,88 +79,72 @@
 
         .validation-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
         }
 
         .validation-card {
             background: white;
             border-radius: 12px;
-            padding: 25px;
+            padding: 30px;
             border: 2px solid #e8e9ea;
             transition: all 0.3s ease;
-            position: relative;
             overflow: hidden;
         }
 
-        .validation-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
 
-        .validation-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: #e8e9ea;
-            transition: background 0.3s ease;
-        }
-
-        .validation-card.validated::before {
-            background: linear-gradient(180deg, #4caf50, #66bb6a);
-        }
-
-        .validation-card.pending::before {
-            background: linear-gradient(180deg, #ff9800, #ffb74d);
-        }
-
-        .validation-header {
+        /* Header de la carte */
+        .card-header-section {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
+            gap: 15px;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         .validation-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            background: #f8f9fa;
-            color: #666;
+            font-size: 32px;
             transition: all 0.3s ease;
         }
 
-        .validation-card.validated .validation-icon {
-            background: linear-gradient(135deg, #4caf50, #66bb6a);
+        .validation-card.pending .validation-icon {
+            background-color: #ff8925;
             color: white;
         }
 
-        .validation-card.pending .validation-icon {
-            background: linear-gradient(135deg, #ff9800, #ffb74d);
+        .validation-card.validated .validation-icon {
+            background-color: #ff8925;
             color: white;
+        }
+
+        .validation-card.rejected .validation-icon {
+            background-color: #ff8925;
+            color: white;
+        }
+
+        .validation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
         }
 
         .validation-status {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
-        }
-
-        .validation-status.validated {
-            background: #e8f5e9;
-            color: #2e7d32;
         }
 
         .validation-status.pending {
@@ -122,46 +152,36 @@
             color: #e65100;
         }
 
+        .validation-status.validated {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .validation-status.rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
         .validation-status i {
             font-size: 14px;
         }
 
-        .validation-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .validation-description {
-            font-size: 13px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        .validation-date {
-            font-size: 12px;
-            color: #999;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .validation-date i {
-            font-size: 14px;
-        }
-
+        /* Actions */
         .validation-actions {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #f0f1f3;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .btn-validate {
-            width: 100%;
-            padding: 10px;
-            font-size: 13px;
+        .action-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 14px;
             font-weight: 600;
             border-radius: 8px;
             border: none;
@@ -173,74 +193,128 @@
             gap: 8px;
         }
 
-        .btn-validate.validate {
-            background: #4caf50;
+        .action-btn i {
+            font-size: 16px;
+        }
+
+        /* Bouton Valider */
+        .btn-validate {
+            background: #4caf50 !important;
             color: white;
         }
 
-        .btn-validate.validate:hover {
-            background: #45a049;
+        .btn-validate:hover {
+            background: #45a049 !important;
+        }
+     
+        .btn-reject {
+            background: #ed2618 !important;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background: #ed2618 !important;
         }
 
-        .btn-validate.validated {
-            background: #e8f5e9;
-            color: #2e7d32;
-            cursor: default;
+        /* Bouton Suggestion */
+        .btn-suggest {
+            background: #323131 !important;
+            color: white !important;
+            border: 2px solid #323131 !important;
         }
 
-        /* Progress Summary */
-        .progress-summary {
-            background: white;
+        .btn-suggest:hover {
+            background: #323131  !important;
+            color: white;
+        }
+    
+
+          /*** Bouton Suggestion 
+        .btn-suggest {
+            background: white !important;
+            color: #FF7900 !important;
+            border: 2px solid #FF7900 !important;
+        }
+
+        .btn-suggest:hover {
+            background: #FF7900;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 121, 0, 0.3);
+
+   
+        } ***/
+
+        /* Modal styles */
+        .modal-content {
+            border: none;
             border-radius: 12px;
-            padding: 25px;
-            border: 1px solid #e8e9ea;
-            margin-bottom: 30px;
         }
 
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e8e9ea;
+            padding: 20px 25px;
         }
 
-        .progress-title {
-            font-size: 16px;
+        .modal-title {
+            font-size: 18px;
             font-weight: 600;
             color: #333;
         }
 
-        .progress-percentage {
-            font-size: 24px;
-            font-weight: 700;
-            color: #FF7900;
+        .modal-body {
+            padding: 25px;
         }
 
-        .progress-bar-container {
-            width: 100%;
-            height: 12px;
-            background: #f0f1f3;
-            border-radius: 10px;
-            overflow: hidden;
+        .modal-footer {
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-top: 1px solid #e8e9ea;
         }
 
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #FF7900, #ff8f33);
-            border-radius: 10px;
-            transition: width 0.5s ease;
+        textarea.form-control {
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid #e8e9ea;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 120px;
         }
 
-        .progress-text {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #666;
-            text-align: center;
+        textarea.form-control:focus {
+            border-color: #FF7900;
+            box-shadow: 0 0 0 3px rgba(255, 121, 0, 0.1);
+            outline: none;
+        }
+
+        /* Confirmation modal specific styles */
+        .confirmation-text {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 0;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .modal-icon.validate {
+            color: #4caf50;
+        }
+
+        .modal-icon.reject {
+            color: #f44336;
         }
 
         @media (max-width: 768px) {
             .validation-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .action-row {
+                flex-direction: column;
             }
         }
     </style>
@@ -248,192 +322,408 @@
     <div class="dashboard-container">
         <!-- Header -->
         <div class="dashboard-header">
-            <h4><i class="bi bi-clipboard-check me-2" style="color: #FF7900;"></i>Tableau de validation</h4>
-            <p>Suivez l'état de validation de vos éléments</p>
+            <h4><i class="bi bi-clipboard-check me-2" style="color: #FF7900;"></i>Validation de la descritption d'une voie</h4>
+            <p>Description actuelle: {{ voie.description|default:"Aucune description" }}</p>
+            <p>Proposition de description: {{ voie.description_proposee|default:"Aucune proposition" }}</p> <br> 
+            {% comment %} <p> Suggestion CCA: {{ voie.suggestion_cca|default:"Aucune suggestion" }}</p>
+            <p> Suggestion MO: {{ voie.suggestion_mo|default:"Aucune suggestion" }}</p> {% endcomment %}
+
+             <p></p>
         </div>
 
         <!-- Validation Cards -->
         <div class="validation-grid">
-            <!-- Card 1 - Validé -->
-            <div class="validation-card validated" data-validated="true">
-                <div class="validation-header">
+            <!-- Niveau 1 : Cellule de la centrale d'adressage -->
+            {% if perms.myapp.valider_cca or perms.myapp.rejeter_cca or perms.myapp.ajouter_suggestion_cca %}
+            <div class="validation-card validated">
+                <div class="card-header-section">
                     <div class="validation-icon">
-                        <i class="bi bi-pin-map-fill"></i>
+                        <i class="bi bi-geo-alt-fill"></i>
                     </div>
-                    <div class="validation-status validated">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Validé
+                    <div>
+                        <h5 class="validation-title">Cellule de la centrale d'adressage</h5>
+                      
+                        <div class="validation-status mt-2
+                            {% if voie.statut == 'validee_finalement' %}
+                                validated
+                            {% elif voie.statut == 'en_attente_cca' or voie.statut == 'en_attente_mo' %}
+                                pending
+                            {% elif voie.statut == 'retour_toponymie' %}
+                                returned
+                                neutral
+                            {% endif %}
+                            ">
+                            {% if voie.statut == 'aucune_modification' %}
+                                Aucune modification
+                            {% elif voie.statut == 'en_attente_cca' %}
+                                En attente de validation CCA
+                            {% elif voie.statut == 'en_attente_mo' %}
+                                En attente de validation MO
+                            {% elif voie.statut == 'retour_toponymie' %}
+                                Retour à la Toponymie
+                            {% elif voie.statut == 'validee_finalement' %}
+                                Validée définitivement
+                            {% else %}
+                                 Aucune modification
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-                <div class="validation-title"> AVENUE ALEXANDRE AYÉ AYÉ </div>
-                <div class="validation-description">
-                    Enseignant de Droit à l'université Félix Houphouet Boigny de Cocody/Abidjan.
-                </div>
-                <div class="validation-date">
-                    <i class="bi bi-calendar-check"></i>
-                    Niveau 1
-                </div>
+                
                 <div class="validation-actions">
-                    <button class="btn-validate validated" disabled>
-                        <i class="bi bi-check-circle"></i>
-                        Validé
-                    </button>
+                
+                    {% if voie.statut != 'en_attente_mo' and voie.statut != 'validee_finalement' and voie.statut != 'retour_toponymie' and voie.statut != 'aucune_modification'  %}
+                    <div class="validation-actions">
+                            <div class="action-row">
+
+                                {% if perms.myapp.valider_cca %}
+                                <button class="action-btn btn-validate"
+                                        data-action="validate"
+                                        data-voie-id="{{ voie.id }}"
+                                        onclick="showConfirmation(this)">
+                                    Valider
+                                </button>
+                                {% endif %}
+
+                                {% if perms.myapp.rejeter_cca %}
+                                <button class="action-btn btn-reject"
+                                        data-action="reject"
+                                        data-voie-id="{{ voie.id }}"
+                                        onclick="showConfirmation(this)">
+                                    Refuser
+                                </button>
+                                {% endif %}
+
+                            </div>
+                    </div>
+                    {% endif %}
+
+                    {% if perms.myapp.ajouter_suggestion_cca %}
+                        {% if voie.statut != 'validee_finalement' and voie.statut != 'en_attente_mo' %}
+                        <button class="action-btn btn-suggest" onclick="openSuggestionModal('Cellule de la centrale d\'adressage')">
+                                {% if voie.suggestion_cca %}
+                                    Modifier la suggestion
+                                {% else %}
+                                    Faire une suggestion
+                                {% endif %}
+                        </button>
+                        {% endif %}
+                    {% endif %}
+
+
+                </div>
+
+            </div>
+            {% endif %}
+
+      
+
+            <!-- Niveau 2 : Maître d'ouvrage -->
+            {% if perms.myapp.valider_mo or perms.myapp.rejeter_mo or perms.myapp.ajouter_suggestion_mo %}
+            <div class="validation-card rejected">
+                <div class="card-header-section">
+                    <div class="validation-icon">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+                    <div>
+                        <h5 class="validation-title">Maître d'ouvrage</h5>
+                        <div class="validation-status mt-2
+                            {% if voie.statut == 'validee_finalement' %}
+                                validated
+                            {% elif voie.statut == 'en_attente_cca' or voie.statut == 'en_attente_mo' %}
+                                pending
+                            {% elif voie.statut == 'retour_toponymie' %}
+                                returned
+                                neutral
+                            {% endif %}
+                            ">
+                            {% if voie.statut == 'aucune_modification' %}
+                                Aucune modification
+                            {% elif voie.statut == 'en_attente_cca' %}
+                                En attente de validation CCA
+                            {% elif voie.statut == 'en_attente_mo' %}
+                                En attente de validation MO
+                            {% elif voie.statut == 'retour_toponymie' %}
+                                Retour à la Toponymie
+                            {% elif voie.statut == 'validee_finalement' %}
+                                Validée définitivement
+                            {% else %}
+                                 Aucune modification
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="validation-actions">
+
+                    {% if voie.statut != 'retour_toponymie' and voie.statut != 'en_attente_cca' and voie.statut != 'aucune_modification' %}
+                    <div class="action-row">
+
+                    {% if perms.myapp.valider_mo %}
+                        {% if voie.statut != 'validee_finalement' %}
+                        <button class="action-btn btn-validate"
+                                data-action="validate_mo"
+                                data-voie-id="{{ voie.id }}"
+                                onclick="showConfirmation(this)">
+                            Valider
+                        </button>
+                        {% endif %}
+                    {% endif %}
+
+                        {% if perms.myapp.rejeter_mo %}
+                        <button class="action-btn btn-reject"
+                                data-action="reject_mo"
+                                data-voie-id="{{ voie.id }}"
+                                onclick="showConfirmation(this)">
+                            Refuser
+                        </button>
+                        {% endif %}
+
+                    </div>
+                    {% endif %}
+
+                    {% if perms.myapp.ajouter_suggestion_mo %}
+                        {% if voie.statut != 'validee_finalement' %}
+                        <button class="action-btn btn-suggest" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#suggestionModalMO">
+
+                            {% if voie.suggestion_mo %}
+                                Modifier la suggestion
+                            {% else %}
+                                Faire une suggestion
+                            {% endif %}
+                        </button>
+                        {% endif %}
+                    {% endif %}
+
+                </button>
+
                 </div>
             </div>
+            {% endif %}
 
-            <!-- Card 2 - En attente -->
-             <div class="validation-card validated" data-validated="true">
-                <div class="validation-header">
-                    <div class="validation-icon">
-                        <i class="bi bi-pin-map-fill"></i>
-                    </div>
-                    <div class="validation-status validated">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Validé
-                    </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmation -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalTitle">Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
-                <div class="validation-title"> AVENUE ALEXANDRE AYÉ AYÉ </div>
-                <div class="validation-description">
-                    Enseignant de Droit à l'université Félix Houphouet Boigny de Cocody/Abidjan.
+                <div class="modal-body text-center">
+                    <i class="bi modal-icon" id="confirmationIcon"></i>
+                    <p class="confirmation-text" id="confirmationText"></p>
                 </div>
-                <div class="validation-date">
-                    <i class="bi bi-calendar-check"></i>
-                    Niveau 2
-                </div>
-                <div class="validation-actions">
-                    <button class="btn-validate validated" disabled>
-                        <i class="bi bi-check-circle"></i>
-                        Validé
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 10px 20px; border-radius: 8px;">
+                        Annuler
                     </button>
-                </div>
-            </div>
-
-            <!-- Card 3 - Validé -->
-            <div class="validation-card validated" data-validated="true">
-                <div class="validation-header">
-                    <div class="validation-icon">
-                        <i class="bi bi-pin-map-fill"></i>
-                    </div>
-                    <div class="validation-status validated">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Validé
-                    </div>
-                </div>
-                <div class="validation-title">Validation équipe</div>
-                <div class="validation-description">
-                    L'équipe a approuvé et validé tous les éléments requis.
-                </div>
-                <div class="validation-date">
-                    <i class="bi bi-calendar-check"></i>
-                     Niveau 3
-                </div>
-                <div class="validation-actions">
-                    <button class="btn-validate validated" disabled>
-                        <i class="bi bi-check-circle"></i>
-                        Validé
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 4 - En attente -->
-            <div class="validation-card pending" data-validated="false">
-                <div class="validation-header">
-                    <div class="validation-icon">
-                        <i class="bi bi-pin-map-fill"></i>
-                    </div>
-                    <div class="validation-status pending">
-                        <i class="bi bi-clock"></i>
-                        En attente
-                    </div>
-                </div>
-                <div class="validation-title">Configuration technique</div>
-                <div class="validation-description">
-                    Paramètres techniques en attente de vérification finale.
-                </div>
-                <div class="validation-date">
-                    <i class="bi bi-calendar"></i>
-                     Niveau 4
-                </div>
-                <div class="validation-actions">
-                    <button class="btn-validate validate" onclick="validateItem(this)">
-                        <i class="bi bi-check-circle"></i>
-                        Valider
+                    <button type="button" class="btn" id="confirmButton" onclick="confirmAction()" style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; color: white;">
+                        Confirmer
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal Suggestion -->
+    <div class="modal fade" id="suggestionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <form id="suggestionForm" method="POST" action="{% url 'ajouter_suggestion_cca' voie.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                <h5 class="modal-title" id="suggestionModalTitle">Ajouter une suggestion CCA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                <label for="suggestionText" class="form-label" style="font-weight: 600; color: #333; font-size: 14px;">
+                    Votre suggestion :
+                </label>
+                <textarea 
+                    class="form-control" 
+                    id="suggestionText" 
+                    name="suggestion_cca"
+                    placeholder="Entrez votre suggestion ici..." 
+                    required>{{ voie.suggestion_cca|default:"" }}</textarea>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 10px 20px; border-radius: 8px;">
+                    Annuler
+                </button>
+                <button type="submit" class="btn" style="padding: 10px 20px; background: #FF7900; color: white; border: none; border-radius: 8px; font-weight: 600;">
+                    <i class="bi bi-send me-2"></i>Envoyer
+                </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Suggestion MO -->
+    <div class="modal fade" id="suggestionModalMO" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <form method="POST" action="{% url 'ajouter_suggestion_mo' voie.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                <h5 class="modal-title">Ajouter une suggestion MO</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                <label for="suggestionTextMO" class="form-label" style="font-weight: 600; color: #333; font-size: 14px;">
+                    Votre suggestion :
+                </label>
+                <textarea 
+                    class="form-control" 
+                    id="suggestionTextMO" 
+                    name="suggestion_mo"
+                    placeholder="Entrez votre suggestion ici..." 
+                    required>{{ voie.suggestion_mo|default:"" }}</textarea>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 10px 20px; border-radius: 8px;">
+                    Annuler
+                </button>
+                <button type="submit" class="btn" style="padding: 10px 20px; background: #FF7900; color: white; border: none; border-radius: 8px; font-weight: 600;">
+                    <i class="bi bi-send me-2"></i>Envoyer
+                </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
-        // Fonction pour valider un élément
-        function validateItem(button) {
-            const card = button.closest('.validation-card');
+        let currentLevel = '';
+
+        // Ouvrir le modal de suggestion
+        function openSuggestionModal(levelName) {
+            currentLevel = levelName;
+            document.getElementById('suggestionModalTitle').textContent = 'Suggestion pour : ' + levelName;
             
-            // Animation de validation
-            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Validation...';
-            button.disabled = true;
+            // Réinitialiser le textarea (ou garder la valeur actuelle si elle existe déjà)
+            // document.getElementById('suggestionText').value = '';
             
-            setTimeout(() => {
-                // Mettre à jour la carte
-                card.classList.remove('pending');
-                card.classList.add('validated');
-                card.dataset.validated = 'true';
-                
-                // Mettre à jour le statut
-                const statusBadge = card.querySelector('.validation-status');
-                statusBadge.classList.remove('pending');
-                statusBadge.classList.add('validated');
-                statusBadge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Validé';
-                
-                // Mettre à jour la date
-                const dateElement = card.querySelector('.validation-date');
-                const today = new Date().toLocaleDateString('fr-FR');
-                dateElement.innerHTML = `<i class="bi bi-calendar-check"></i> Validé le ${today}`;
-                
-                // Mettre à jour le bouton
-                button.classList.remove('validate');
-                button.classList.add('validated');
-                button.innerHTML = '<i class="bi bi-check-circle"></i> Validé';
-                
-                // Mettre à jour la progression
-                updateProgress();
-            }, 1500);
+            const modal = new bootstrap.Modal(document.getElementById('suggestionModal'));
+            modal.show();
         }
-        
-        // Fonction pour calculer et mettre à jour la progression
-        function updateProgress() {
-            const cards = document.querySelectorAll('.validation-card');
-            const total = cards.length;
-            let validated = 0;
+
+        // Soumettre la suggestion
+        function submitSuggestion() {
+            const form = document.getElementById('suggestionForm');
+            const suggestionText = document.getElementById('suggestionText').value.trim();
             
-            cards.forEach(card => {
-                if (card.dataset.validated === 'true') {
-                    validated++;
-                }
-            });
-            
-            const percentage = Math.round((validated / total) * 100);
-            
-            // Mettre à jour l'affichage
-            document.getElementById('progressPercentage').textContent = percentage + '%';
-            document.getElementById('progressBar').style.width = percentage + '%';
-            document.getElementById('validatedCount').textContent = validated;
-            document.getElementById('totalCount').textContent = total;
-            
-            // Animation si 100%
-            if (percentage === 100) {
-                setTimeout(() => {
-                    alert('🎉 Félicitations ! Tous les éléments sont validés !');
-                }, 500);
+            if (!suggestionText) {
+                alert('Veuillez entrer une suggestion.');
+                return;
             }
+            
+            // Soumettre le formulaire
+            form.submit();
         }
-        
-        // Initialiser la progression au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            updateProgress();
+
+        // Soumettre le formulaire avec Enter (Shift+Enter pour nouvelle ligne)
+        document.getElementById('suggestionText').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitSuggestion();
+            }
         });
     </script>
+    
+    <script>
+    let currentAction = '';
+    let currentVoieId = '';
+
+    function showConfirmation(button) {
+        currentAction = button.getAttribute('data-action');
+        currentVoieId = button.getAttribute('data-voie-id');
+
+        const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        const icon = document.getElementById('confirmationIcon');
+        const text = document.getElementById('confirmationText');
+        const confirmButton = document.getElementById('confirmButton');
+
+        // On différencie les cas
+        if (currentAction === 'validate' || currentAction === 'validate_mo') {
+            document.getElementById('confirmationModalTitle').textContent = 'Confirmer la validation';
+            icon.className = 'bi bi-check-circle-fill modal-icon validate';
+            text.textContent = 'Êtes-vous sûr de vouloir valider cette proposition ?';
+            confirmButton.style.background = '#4caf50';
+        } else {
+            document.getElementById('confirmationModalTitle').textContent = 'Confirmer le refus';
+            icon.className = 'bi bi-x-circle-fill modal-icon reject';
+            text.textContent = 'Êtes-vous sûr de vouloir refuser cette proposition ?';
+            confirmButton.style.background = '#f44336';
+        }
+
+        modal.show();
+    }
+
+    function confirmAction() {
+        let url = '';
+
+        // On redirige selon le type d'action
+        if (currentAction === 'validate') {
+            url = `/admins/valider_cca/${currentVoieId}/`;
+        } else if (currentAction === 'reject') {
+            url = `/admins/rejeter_cca/${currentVoieId}/`;
+        } else if (currentAction === 'validate_mo') {
+            url = `/admins/valider_mo/${currentVoieId}/`;
+        } else if (currentAction === 'reject_mo') {
+            url = `/admins/rejeter_mo/${currentVoieId}/`;
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert('Erreur lors de l’opération.');
+            }
+        })
+        .catch(error => console.error(error));
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+        modal.hide();
+    }
+
+    // Fonction utilitaire CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === name + '=') {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
 
 {% endblock %}

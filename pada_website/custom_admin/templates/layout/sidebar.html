@@ -11,6 +11,7 @@
                     <i class="bi bi-grid-fill me-2"></i> Dashboard
                 </a>
 
+
                 
                 {% if user.is_authenticated and perms.myapp.view_voie %}
                     <a href="{% url 'voies_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'voies_list' %}active{% endif %}">
@@ -18,9 +19,21 @@
                     </a>
                 {% endif %}
 
-                {% if user.is_authenticated and perms.myapp.view_suggestion %}
-                    <a href="{% url 'suggestion_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_list' %}active{% endif %}">
-                        <i class="bi bi-lightbulb-fill me-2"></i> Suggestion
+                {% if user.is_authenticated and perms.myapp.voir_suggestion_voie %}
+                    <a href="{% url 'suggestion_voie_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_voie_list' %}active{% endif %}">
+                        <i class="bi bi-newspaper me-2"></i> Desc. Voies
+                    </a>
+                {% endif %}
+
+                {% if user.is_authenticated and perms.myapp.voir_suggestion_voie_attente_cca %}
+                    <a href="{% url 'suggestion_voie_list_en_attente_cca' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_voie_list_en_attente_cca' %}active{% endif %}">
+                        <i class="bi bi-newspaper me-2"></i> En Attente CCA 
+                    </a>
+                {% endif %}
+
+                {% if user.is_authenticated and perms.myapp.voir_suggestion_voie_attent_mo %}
+                    <a href="{% url 'suggestion_voie_list_en_attente_mo' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_voie_list_en_attente_mo' %}active{% endif %}">
+                        <i class="bi bi-newspaper me-2"></i> En Attente MO 
                     </a>
                 {% endif %}
 
@@ -35,6 +48,12 @@
                 {% if user.is_authenticated and perms.myapp.view_publicites %}
                     <a href="{% url 'afficher_publicite' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'afficher_publicite' %}active{% endif %}">
                         <i class="bi bi-megaphone me-2"></i> Publicité
+                    </a>
+                {% endif %}
+
+                {% if user.is_authenticated and perms.myapp.view_suggestion %}
+                    <a href="{% url 'suggestion_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_list' %}active{% endif %}">
+                        <i class="bi bi-lightbulb-fill me-2"></i> Suggestion
                     </a>
                 {% endif %}
 
