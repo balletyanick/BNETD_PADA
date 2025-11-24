@@ -33,25 +33,25 @@ def home_view(request, qr_code):
         return topo_value
 
     context = {
-        # 🟩 description : priorité toponymie
+        # description : priorité toponymie
         'description_rue': prefer(
             topo.description if topo else None,
             voie.description
         ),
 
-        # 🟩 nom : priorité nom_pada de toponymie
+        # nom : priorité nom_pada de toponymie
         'nom_rue': prefer(
             topo.nom_pada if topo else None,
             voie.nom_voies
         ),
 
-        # 🟩 quartier : priorité quartier_origine
+        # quartier : priorité quartier_origine
         'quartier_rue': prefer(
             topo.quartier_origine if topo else None,
             voie.quartier
         ),
 
-        # 🟩 commune : priorité gid_commune
+        # commune : priorité gid_commune
         'commune_rue': prefer(
             topo.gid_commune if topo else None,
             voie.entites_territoriales_2

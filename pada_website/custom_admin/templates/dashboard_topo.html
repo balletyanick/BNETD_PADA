@@ -401,40 +401,46 @@
                     </div>
                 </div>
                 
-                <div class="validation-actions">
-                
-                    
-                        {% if topo.statut == 'en_attente_cs'%}
-                        <div class="validation-actions">
-                                <div class="action-row">
-
-                                    {% if perms.myapp.valider_cs_topo %}
-                                    <button class="action-btn btn-validate"
-                                            data-action="validate"
-                                            data-topo-id="{{ topo.id_toponymie }}"
-                                            onclick="showConfirmation(this)">
-                                        Valider
-                                    </button>
-                                    {% endif %}
+                    {% if topo.statut == 'en_attente_cs'%}
+                    <div class="validation-actions">
+                            <div class="validation-actions">
+                                    <div class="action-row">
+                                            {% if perms.myapp.valider_cs_topo %}
+                                            <button class="action-btn btn-validate"
+                                                    data-action="validate"
+                                                    data-topo-id="{{ topo.id_toponymie }}"
+                                                    onclick="showConfirmation(this)">
+                                                Valider
+                                            </button>
+                                            {% endif %}
 
 
-                                    {% if perms.myapp.rejeter_cs_topo %}
-                                    <button class="action-btn btn-reject"
-                                            data-action="reject"
-                                            data-topo-id="{{ topo.id_toponymie }}"
-                                            onclick="showConfirmation(this)">
-                                        Refuser
-                                    </button>
-                                    {% endif %}
+                                            {% if perms.myapp.rejeter_cs_topo %}
+                                            <button class="action-btn btn-reject"
+                                                    data-action="reject"
+                                                    data-topo-id="{{ topo.id_toponymie }}"
+                                                    onclick="showConfirmation(this)">
+                                                Refuser
+                                            </button>
+                                            {% endif %}
+                                    </div>
+                            </div>
 
 
-                                </div>
-                        </div>
-                        {% endif %}
+                            {% if perms.myapp.suggestion_topo_CS %}
+                            <button class="action-btn btn-suggest" data-bs-toggle="modal" data-bs-target="#suggestionModalCS">
+                                            {% if topo.suggestion_cs %}
+                                                Modifier la suggestion
+                                            {% else %}
+                                                Faire une suggestion
+                                            {% endif %}
+                            </button>
+                            {% endif %}
 
 
+                    </div>
+                {% endif %}
 
-                </div>
 
             </div>
 
@@ -454,39 +460,46 @@
                     </div>
                 </div>
                 
-                <div class="validation-actions">
-                
-                    {% if topo.statut == 'en_attente_coord'%}
                     <div class="validation-actions">
-                            <div class="action-row">
 
-                                {% if perms.myapp.valider_coord_topo %}
-                                    <button class="action-btn btn-validate"
-                                            data-action="validation_coord"
-                                            data-topo-id="{{ topo.id_toponymie }}"
-                                            onclick="showConfirmation(this)">
-                                        Valider
-                                    </button>
-                                {% endif %}
-
-
-                                {% if perms.myapp.rejeter_coord_topo %}
-                                    <button class="action-btn btn-reject"
-                                            data-action="reject_coord"
-                                            data-topo-id="{{ topo.id_toponymie }}"
-                                            onclick="showConfirmation(this)">
-                                        Refuser
-                                    </button>
-                                {% endif %}
+                        {% if topo.statut == 'en_attente_coord'%}
+                        <div class="validation-actions">
+                                <div class="action-row">
+                                    {% if perms.myapp.valider_coord_topo %}
+                                        <button class="action-btn btn-validate"
+                                                data-action="validation_coord"
+                                                data-topo-id="{{ topo.id_toponymie }}"
+                                                onclick="showConfirmation(this)">
+                                            Valider
+                                        </button>
+                                    {% endif %}
 
 
+                                    {% if perms.myapp.rejeter_coord_topo %}
+                                        <button class="action-btn btn-reject"
+                                                data-action="reject_coord"
+                                                data-topo-id="{{ topo.id_toponymie }}"
+                                                onclick="showConfirmation(this)">
+                                            Refuser
+                                        </button>
+                                    {% endif %}
+                                </div>
+                        </div>
+                        {% endif %}
 
-                            </div>
+
+                        {% if perms.myapp.suggestion_topo_CCA %}
+                        <button class="action-btn btn-suggest" data-bs-toggle="modal" data-bs-target="#suggestionModalCCA">
+                                        {% if topo.suggestion_cca %}
+                                            Modifier la suggestion
+                                        {% else %}
+                                            Faire une suggestion
+                                        {% endif %}
+                        </button>
+                        {% endif %}
+
+
                     </div>
-                    {% endif %}
-
-                </div>
-
             </div> 
 
 
@@ -504,10 +517,10 @@
                     </div>
                 </div>
 
-                {% if topo.statut == 'en_attente_mo' or topo.statut == 'valider'%}
                 <div class="validation-actions">
-                    <div class="action-row">
 
+                    {% if topo.statut == 'en_attente_mo' or topo.statut == 'valider'%}
+                    <div class="action-row">
                         {% if perms.myapp.valider_mo_topo %}
                             {% if topo.statut == 'en_attente_mo'%}
                             <button class="action-btn btn-validate"
@@ -519,7 +532,6 @@
                             {% endif %}
                         {% endif %}
 
-
                         {% if perms.myapp.rejeter_mo_topo %}
                         <button class="action-btn btn-reject"
                                 data-action="reject_mo"
@@ -529,13 +541,23 @@
                         </button>
                         {% endif %}
 
-
                     </div>
+                    {% endif %}
+
+
+                    {% if perms.myapp.suggestion_topo_MO %}
+                    <button class="action-btn btn-suggest" data-bs-toggle="modal" data-bs-target="#suggestionModalMO">
+                        {% if topo.suggestion_mo %}
+                            Modifier la suggestion
+                        {% else %}
+                            Faire une suggestion
+                        {% endif %}
+                    </button>
+                    {% endif %}
+
+
                 </div>
-                {% endif %}
-
             </div> 
-
         </div>
     </div>
 
@@ -562,6 +584,111 @@
             </div>
         </div>
     </div>
+
+
+    <!-- Modal Suggestion CS -->
+    <div class="modal fade" id="suggestionModalCS" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <form method="POST" action="{% url 'ajouter_suggestion_cs_topo' topo.id_toponymie %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                <h5 class="modal-title">Ajouter une suggestion (Chef de service)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                <label class="form-label" style="font-weight: 600; color: #333; font-size: 14px;">
+                    Votre suggestion :
+                </label>
+                <textarea class="form-control"
+                    name="suggestion_cs"
+                    placeholder="Entrez votre suggestion ici..."
+                    required>{{ topo.suggestion_cs|default:"" }}</textarea>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding:10px 20px;">
+                    Annuler
+                </button>
+                <button type="submit" class="btn" style="padding:10px 20px; background:#FF7900; color:white;">
+                    <i class="bi bi-send me-2"></i>Envoyer
+                </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Suggestion CCA -->
+    <div class="modal fade" id="suggestionModalCCA" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <form method="POST" action="{% url 'ajouter_suggestion_cca_topo' topo.id_toponymie %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                <h5 class="modal-title">Ajouter une suggestion (CCA)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                <label class="form-label" style="font-weight: 600; color: #333; font-size: 14px;">
+                    Votre suggestion :
+                </label>
+                <textarea class="form-control"
+                    name="suggestion_cca"
+                    placeholder="Entrez votre suggestion ici..."
+                    required>{{ topo.suggestion_cca|default:"" }}</textarea>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding:10px 20px;">
+                    Annuler
+                </button>
+                <button type="submit" class="btn" style="padding:10px 20px; background:#FF7900; color:white;">
+                    <i class="bi bi-send me-2"></i>Envoyer
+                </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Suggestion MO -->
+    <div class="modal fade" id="suggestionModalMO" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <form method="POST" action="{% url 'ajouter_suggestion_mo_topo' topo.id_toponymie %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                <h5 class="modal-title">Ajouter une suggestion (Maître d'ouvrage)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                <label class="form-label" style="font-weight: 600; color: #333; font-size: 14px;">
+                    Votre suggestion :
+                </label>
+                <textarea class="form-control"
+                    name="suggestion_mo"
+                    placeholder="Entrez votre suggestion ici..."
+                    required>{{ topo.suggestion_mo|default:"" }}</textarea>
+                </div>
+
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding:10px 20px;">
+                    Annuler
+                </button>
+                <button type="submit" class="btn" style="padding:10px 20px; background:#FF7900; color:white;">
+                    <i class="bi bi-send me-2"></i>Envoyer
+                </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+
 
 
 

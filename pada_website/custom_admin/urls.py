@@ -69,14 +69,20 @@ urlpatterns = [
     # CS Toponyme
     path("valider_cs/<int:topo_id>/", views.valider_cs, name="valider_cs"),
     path("rejeter_cs/<int:topo_id>/", views.rejeter_cs, name="rejeter_cs"),
+    path('ajouter_suggestion_cs_topo/<int:voie_id>/', views.ajouter_suggestion_cs_topo, name='ajouter_suggestion_cs_topo'),
+
 
     #Coord Toponyme
     path("valider_coord/<int:topo_id>/", views.valider_coord, name="valider_coord"),
     path("rejeter_coord/<int:topo_id>/", views.rejeter_coord, name="rejeter_coord"),
+    path('ajouter_suggestion_cca_topo/<int:voie_id>/', views.ajouter_suggestion_cca_topo, name='ajouter_suggestion_cca_topo'),
+
 
     # MO Toponyme
     path('validation_mo_topo/<int:topo_id>/',views.validation_mo_topo,name='validation_mo_topo'),
     path('reject_mo_topo/<int:topo_id>/',views.reject_mo_topo,name='reject_mo_topo'),
+    path('ajouter_suggestion_mo_topo/<int:voie_id>/', views.ajouter_suggestion_mo_topo, name='ajouter_suggestion_mo_topo'),
+
 ]
 
 

@@ -832,6 +832,65 @@ def reject_mo_topo(request, topo_id):
 
 
 
+# Ajouter une suggestion par le MO
+def ajouter_suggestion_mo_topo(request, voie_id):
+    topo = get_object_or_404(Toponymie, id_toponymie=voie_id)
+    
+    if request.method == 'POST':
+        suggestion = request.POST.get('suggestion_mo')
+        if suggestion:
+            topo.suggestion_mo = suggestion
+            topo.validation_mo = False
+            topo.validation_cs = False
+            topo.validation_coord = False
+
+            topo.statut = 'retour_toponymie'
+            topo.save()
+            messages.success(request, f"Suggestion du MO ajoutée avec succès pour la voie « {topo.nom_pada} ».")
+        else:
+            messages.warning(request, "Veuillez entrer une suggestion avant d’envoyer.")
+    
+    return redirect('toponymie_list')
+
+
+# Ajouter une suggestion par le MO
+def ajouter_suggestion_cs_topo(request, voie_id):
+    topo = get_object_or_404(Toponymie, id_toponymie=voie_id)
+    
+    if request.method == 'POST':
+        suggestion = request.POST.get('suggestion_cs')
+        if suggestion:
+            topo.suggestion_cs = suggestion
+            topo.validation_cs = False
+            topo.statut = 'retour_toponymie'
+            topo.save()
+            messages.success(request, f"Suggestion du MO ajoutée avec succès pour la voie « {topo.nom_pada} ».")
+        else:
+            messages.warning(request, "Veuillez entrer une suggestion avant d’envoyer.")
+    
+    return redirect('toponymie_list')
+
+
+
+# Ajouter une suggestion par le MO
+def ajouter_suggestion_cca_topo(request, voie_id):
+    topo = get_object_or_404(Toponymie, id_toponymie=voie_id)
+    
+    if request.method == 'POST':
+        suggestion = request.POST.get('suggestion_cca')
+        if suggestion:
+            topo.validation_coord = False
+            topo.validation_cs = False
+            topo.statut = 'retour_toponymie'
+            topo.save()
+            messages.success(request, f"Suggestion du MO ajoutée avec succès pour la voie « {topo.nom_pada} ».")
+        else:
+            messages.warning(request, "Veuillez entrer une suggestion avant d’envoyer.")
+    
+    return redirect('toponymie_list')
+
+
+
 
 
 

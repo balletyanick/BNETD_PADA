@@ -215,6 +215,10 @@ class Toponymie(models.Model):
     date_modif_toponyme = models.DateField(null=True, blank=True)
     date_modif_description = models.DateField(null=True, blank=True)
 
+    suggestion_cs = models.TextField(null=True, blank=True)
+    suggestion_cca = models.TextField(null=True, blank=True)
+    suggestion_mo = models.TextField(null=True, blank=True)
+
     validation_cs = models.BooleanField(default=False)
     validation_coord = models.BooleanField(default=False)
     validation_mo = models.BooleanField(default=False)
@@ -249,6 +253,10 @@ class Toponymie(models.Model):
             ("voir_topo_attente_CS", "Voir Toponymie en attente de cs"),
             ("voir_topo_attente_CCA", "Voir Toponymie en attente de CCA"),
             ("voir_topo_attente_mo", "Voir Toponymie en attente de MO"),
+
+            ("suggestion_topo_CS", "Ajouter Suggestion TOPO CS"),
+            ("suggestion_topo_CCA", "Ajouter Suggestion TOPO CCA"),
+            ("suggestion_topo_MO", "Ajouter Suggestion TOPO MO"),
         ]
 
     def __str__(self):
@@ -263,6 +271,5 @@ class Toponymie(models.Model):
             "valider": "Validée définitivement",
             "aucune_modification": "Aucune modification",
             "retour_toponymie": "Retour à la Toponymie",
-            
         }
         return mapping.get(self.statut, "Aucune modification")
