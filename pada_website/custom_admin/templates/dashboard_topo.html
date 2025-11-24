@@ -1,0 +1,666 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Panneautage - Editer Voies {% endblock %}
+
+{% block content %}
+
+
+    <style>
+
+    .validation-status {
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 10px;
+        display: inline-block;
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+        text-align: center;
+        }
+
+        /* ✅ Validée définitivement */
+        .validation-status.validated {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        }
+
+        /* 🕓 En attente (CCA ou MO) */
+        .validation-status.pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+        }
+
+        /* 🔁 Retour à la Toponymie */
+        .validation-status.returned {
+        background-color: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+        }
+
+        /* ⚪ Aucun changement */
+        .validation-status.neutral {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        }
+
+        /* ❌ Rejetée */
+        .validation-status.rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        }
+
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+            padding-top: 20px;
+        }
+
+        .dashboard-header {
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header h4 {
+            color: #333;
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-header p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .validation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .validation-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid #e8e9ea;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+
+        /* Header de la carte */
+        .card-header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .validation-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .validation-card.pending .validation-icon {
+            background-color: #ff8925;
+            color: white;
+        }
+
+        .validation-card.validated .validation-icon {
+            background-color: #ff8925;
+            color: white;
+        }
+
+        .validation-card.rejected .validation-icon {
+            background-color: #ff8925;
+            color: white;
+        }
+
+        .validation-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .validation-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .statut-badge {
+    padding: 6px 14px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+    /* 🟡 En attente chef de service */
+    .statut-badge.en_attente_cs {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    /* 🟠 En attente coordinatrice */
+    .statut-badge.en_attente_coord {
+        background-color: #ffe5cc;
+        color: #b55300;
+        border: 1px solid #ffcf99;
+    }
+
+    /* 🔵 En attente MO */
+    .statut-badge.en_attente_mo {
+        background-color: #cce5ff;
+        color: #0e6bcfff;
+        border: 1px solid #b8daff;
+    }
+
+    /* 🟢 Validée */
+    .statut-badge.valider {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    /* ⚪ Aucune modification */
+    .statut-badge.aucune_modification {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+    }
+
+    
+    /* ⚪ Retour Topo */
+    .statut-badge.retour_toponymie {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+    }
+
+
+        .validation-status.pending {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .validation-status.validated {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .validation-status.rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .validation-status i {
+            font-size: 14px;
+        }
+
+        /* Actions */
+        .validation-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn i {
+            font-size: 16px;
+        }
+
+        /* Bouton Valider */
+        .btn-validate {
+            background: #4caf50 !important;
+            color: white;
+        }
+
+        .btn-validate:hover {
+            background: #45a049 !important;
+        }
+     
+        .btn-reject {
+            background: #ed2618 !important;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background: #ed2618 !important;
+        }
+
+        /* Bouton Suggestion */
+        .btn-suggest {
+            background: #323131 !important;
+            color: white !important;
+            border: 2px solid #323131 !important;
+        }
+
+        .btn-suggest:hover {
+            background: #323131  !important;
+            color: white;
+        }
+    
+
+          /*** Bouton Suggestion 
+        .btn-suggest {
+            background: white !important;
+            color: #FF7900 !important;
+            border: 2px solid #FF7900 !important;
+        }
+
+        .btn-suggest:hover {
+            background: #FF7900;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 121, 0, 0.3);
+
+   
+        } ***/
+
+        /* Modal styles */
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e8e9ea;
+            padding: 20px 25px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            background: #f8f9fa;
+            border-top: 1px solid #e8e9ea;
+        }
+
+        textarea.form-control {
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid #e8e9ea;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        textarea.form-control:focus {
+            border-color: #FF7900;
+            box-shadow: 0 0 0 3px rgba(255, 121, 0, 0.1);
+            outline: none;
+        }
+
+        /* Confirmation modal specific styles */
+        .confirmation-text {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 0;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .modal-icon.validate {
+            color: #4caf50;
+        }
+
+        .modal-icon.reject {
+            color: #f44336;
+        }
+
+        @media (max-width: 768px) {
+            .validation-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h4><i class="bi bi-clipboard-check me-2" style="color: #FF7900;"></i>Validation de la descritption d'une voie</h4>
+            <p> <strong> Description actuelle: </strong> {{ topo.description|default:"Aucune description" }}</p> <br> 
+
+
+            {% if topo.statut != 'valider' and topo.statut != 'aucune_modification' and topo.statut != 'retour_toponymie'  %}
+                <p> <strong> Proposition de description ({{ topo.date_modif_description|default:"" }}): </strong> {{ topo.nouvelle_description|default:"Aucune proposition" }}</p> 
+            {% endif %}
+
+        </div>
+
+        <!-- Validation Cards -->
+        <div class="validation-grid">
+            <!-- Niveau 1 : Chef de service -->
+            <div class="validation-card validated">
+                <div class="card-header-section">
+                    <div class="validation-icon">
+                        <i class="bi bi-mortarboard"></i>
+                    </div>
+                    <div>
+                        <h5 class="validation-title">Chef de service</h5>
+                      
+                        <div class="validation-status statut-badge {{ topo.statut }} mt-2">
+                            {{ topo.get_statut_label }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="validation-actions">
+                
+                    
+                        {% if topo.statut == 'en_attente_cs'%}
+                        <div class="validation-actions">
+                                <div class="action-row">
+
+                                    {% if perms.myapp.valider_cs_topo %}
+                                    <button class="action-btn btn-validate"
+                                            data-action="validate"
+                                            data-topo-id="{{ topo.id_toponymie }}"
+                                            onclick="showConfirmation(this)">
+                                        Valider
+                                    </button>
+                                    {% endif %}
+
+
+                                    {% if perms.myapp.rejeter_cs_topo %}
+                                    <button class="action-btn btn-reject"
+                                            data-action="reject"
+                                            data-topo-id="{{ topo.id_toponymie }}"
+                                            onclick="showConfirmation(this)">
+                                        Refuser
+                                    </button>
+                                    {% endif %}
+
+
+                                </div>
+                        </div>
+                        {% endif %}
+
+
+
+                </div>
+
+            </div>
+
+
+            <!-- Niveau 2 : Cellule de la centrale d'adressage -->
+            <div class="validation-card validated">
+                <div class="card-header-section">
+                    <div class="validation-icon">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="validation-title">Cellule de la centrale d'adressage</h5>
+                      
+                        <div class="validation-status statut-badge {{ topo.statut }} mt-2">
+                            {{ topo.get_statut_label }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="validation-actions">
+                
+                    {% if topo.statut == 'en_attente_coord'%}
+                    <div class="validation-actions">
+                            <div class="action-row">
+
+                                {% if perms.myapp.valider_coord_topo %}
+                                    <button class="action-btn btn-validate"
+                                            data-action="validation_coord"
+                                            data-topo-id="{{ topo.id_toponymie }}"
+                                            onclick="showConfirmation(this)">
+                                        Valider
+                                    </button>
+                                {% endif %}
+
+
+                                {% if perms.myapp.rejeter_coord_topo %}
+                                    <button class="action-btn btn-reject"
+                                            data-action="reject_coord"
+                                            data-topo-id="{{ topo.id_toponymie }}"
+                                            onclick="showConfirmation(this)">
+                                        Refuser
+                                    </button>
+                                {% endif %}
+
+
+
+                            </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+            </div> 
+
+
+            <!-- Niveau 3 : Maître d'ouvrage -->
+            <div class="validation-card rejected">
+                <div class="card-header-section">
+                    <div class="validation-icon">
+                        <i class="bi bi-buildings"></i>
+                    </div>
+                    <div>
+                        <h5 class="validation-title">Maître d'ouvrage</h5>
+                        <div class="validation-status statut-badge {{ topo.statut }} mt-2">
+                            {{ topo.get_statut_label }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if topo.statut == 'en_attente_mo' or topo.statut == 'valider'%}
+                <div class="validation-actions">
+                    <div class="action-row">
+
+                        {% if perms.myapp.valider_mo_topo %}
+                            {% if topo.statut == 'en_attente_mo'%}
+                            <button class="action-btn btn-validate"
+                                    data-action="validate_mo"
+                                    data-topo-id="{{ topo.id_toponymie }}"
+                                    onclick="showConfirmation(this)">
+                                Valider
+                            </button>
+                            {% endif %}
+                        {% endif %}
+
+
+                        {% if perms.myapp.rejeter_mo_topo %}
+                        <button class="action-btn btn-reject"
+                                data-action="reject_mo"
+                                data-topo-id="{{ topo.id_toponymie }}"
+                                onclick="showConfirmation(this)">
+                            Refuser
+                        </button>
+                        {% endif %}
+
+
+                    </div>
+                </div>
+                {% endif %}
+
+            </div> 
+
+        </div>
+    </div>
+
+    <!-- Modal Confirmation -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalTitle">Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <i class="bi modal-icon" id="confirmationIcon"></i>
+                    <p class="confirmation-text" id="confirmationText"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 10px 20px; border-radius: 8px;">
+                        Annuler
+                    </button>
+                    <button type="button" class="btn" id="confirmButton" onclick="confirmAction()" style="padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; color: white;">
+                        Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    let currentAction = '';
+    let currentVoieId = '';
+
+    function showConfirmation(button) {
+        currentAction = button.getAttribute('data-action');
+        currentVoieId = button.getAttribute('data-topo-id');
+
+        const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        const icon = document.getElementById('confirmationIcon');
+        const text = document.getElementById('confirmationText');
+        const confirmButton = document.getElementById('confirmButton');
+
+        // On différencie les cas
+        if ( currentAction === 'validate' || currentAction === 'validation_coord' || currentAction === 'validate_mo') {
+            document.getElementById('confirmationModalTitle').textContent = 'Confirmer la validation';
+            icon.className = 'bi bi-check-circle-fill modal-icon validate';
+            text.textContent = 'Êtes-vous sûr de vouloir valider cette proposition ?';
+            confirmButton.style.background = '#4caf50';
+        } else {
+            document.getElementById('confirmationModalTitle').textContent = 'Confirmer le refus';
+            icon.className = 'bi bi-x-circle-fill modal-icon reject';
+            text.textContent = 'Êtes-vous sûr de vouloir refuser cette proposition ?';
+            confirmButton.style.background = '#f44336';
+        }
+
+        modal.show();
+    }
+
+    function confirmAction() {
+    let url = '';
+
+    // Niveau 1 : Chef de service
+    if (currentAction === 'validate') {
+        url = `/p_bnetd25/valider_cs/${currentVoieId}/`;
+
+    } else if (currentAction === 'reject') {
+        url = `/p_bnetd25/rejeter_cs/${currentVoieId}/`;
+
+    // Niveau 2 : Cellule de la centrale d’adressage
+    } else if (currentAction === 'validation_coord') {
+        url = `/p_bnetd25/valider_coord/${currentVoieId}/`;
+
+    } else if (currentAction === 'reject_coord') {  
+        url = `/p_bnetd25/rejeter_coord/${currentVoieId}/`;
+    }
+
+    else if (currentAction === 'validate_mo') {
+        url = `/p_bnetd25/validation_mo_topo/${currentVoieId}/`;
+
+    } else if (currentAction === 'reject_mo') {  
+        url = `/p_bnetd25/reject_mo_topo/${currentVoieId}/`;
+    }
+
+    
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert('Erreur lors de l’opération.');
+        }
+    })
+    .catch(error => console.error(error));
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+    modal.hide();
+}
+
+
+    // Fonction utilitaire CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === name + '=') {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+
+{% endblock %}

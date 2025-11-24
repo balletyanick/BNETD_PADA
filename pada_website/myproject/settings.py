@@ -66,9 +66,9 @@ INSTALLED_APPS = [
 ]
 
 
-LOGIN_URL = '/admins/login/'
-LOGIN_REDIRECT_URL = '/admins/dashboard/'
-LOGOUT_REDIRECT_URL = '/admins/login/'
+LOGIN_URL = '/p_bnetd25/login/'
+LOGIN_REDIRECT_URL = '/p_bnetd25/dashboard/'
+LOGOUT_REDIRECT_URL = '/p_bnetd25/login/'
 
 
 
@@ -113,7 +113,7 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql', # Indique que le moteur utilisé est PostgreSQL
-        'NAME': 'db_qrcodes', # Nom de la base de données PostgreSQL
+        'NAME': 'db_qrcode', # Nom de la base de données PostgreSQL
         'USER': 'postgres', # Nom d'utilisateur pour se connecter à PostgreSQL
         'PASSWORD': 'yanick',
         'HOST': 'localhost',  # l'adresse de votre serveur PostgreSQL

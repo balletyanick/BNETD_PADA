@@ -25,15 +25,10 @@
                     </a>
                 {% endif %}
 
-                {% if user.is_authenticated and perms.myapp.voir_suggestion_voie_attente_cca %}
-                    <a href="{% url 'suggestion_voie_list_en_attente_cca' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_voie_list_en_attente_cca' %}active{% endif %}">
-                        <i class="bi bi-newspaper me-2"></i> En Attente CCA 
-                    </a>
-                {% endif %}
-
-                {% if user.is_authenticated and perms.myapp.voir_suggestion_voie_attent_mo %}
-                    <a href="{% url 'suggestion_voie_list_en_attente_mo' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'suggestion_voie_list_en_attente_mo' %}active{% endif %}">
-                        <i class="bi bi-newspaper me-2"></i> En Attente MO 
+                
+                {% if user.is_authenticated and perms.myapp.list_toponyme %}
+                    <a href="{% url 'toponymie_list' %}" class="btn w-100 mt-3 text-start sidebarButton {% if request.resolver_match.url_name == 'toponymie_list' %}active{% endif %}">
+                        <i class="bi bi-flag-fill me-2"></i> Toponymie
                     </a>
                 {% endif %}
 

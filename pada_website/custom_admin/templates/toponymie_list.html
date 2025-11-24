@@ -1,0 +1,324 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Panneautage - Liste des Toponymes{% endblock %}
+
+
+
+{% block content %}
+                <div class="row pt-4">
+                    <div class="col-md-4 d-flex align-items-center pt-1">
+                        <h5 class="fw-bold">Gestion des toponymes </h5>
+                    </div>
+                    <div class="col-md-8 text-end">
+
+                        {% if user.is_authenticated and perms.myapp.voir_topo_attente_toponymie %}
+                            <a href="{% url 'topo_attente_topo' %}" class=" {% if request.resolver_match.url_name == 'topo_attente_topo' %}active{% endif %}">
+                                <button class="btn btn-warning text-white" id="addAttente">
+                                    <i class="bi bi-eye me-2"></i> En Attente Toponymie 
+                                </button>
+                            </a>
+                        {% endif %}
+
+                        {% if user.is_authenticated and perms.myapp.voir_topo_attente_CS %}
+                            <a href="{% url 'topo_attente_cs' %}" class="{% if request.resolver_match.url_name == 'topo_attente_cs' %}active{% endif %}">
+                                <button class="btn btn-warning text-white" id="addAttente">
+                                    <i class="bi bi-eye me-2"></i> En Attente CS
+                                </button>
+                            </a>
+                        {% endif %}
+
+                        {% if user.is_authenticated and perms.myapp.voir_topo_attente_CCA %}
+                            <a href="{% url 'topo_attente_coord' %}" class="{% if request.resolver_match.url_name == 'topo_attente_coord' %}active{% endif %}">
+                                <button class="btn btn-warning text-white" id="addAttente">
+                                    <i class="bi bi-eye me-2"></i> En Attente CCA 
+                                </button>
+                            </a>
+                        {% endif %}
+
+
+                        {% if user.is_authenticated and perms.myapp.voir_topo_attente_mo %}
+                            <a href="{% url 'topo_attente_mo' %}" class="{% if request.resolver_match.url_name == 'topo_attente_mo' %}active{% endif %}">
+                                <button class="btn btn-warning text-white" id="addAttente">
+                                    <i class="bi bi-eye me-2"></i> En Attente MO
+                                </button>
+                            </a>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="row my-4">
+                    <div class="col-md-4">
+                        <form method="get" class="d-flex">
+                            <input type="text" class="form-control" name="q" value="{{ query|default:'' }}" placeholder="Rechercher un toponyme ..." id="search">
+                            <button type="submit" class="btn ms-2" id="bouttonSerach">
+                                <span style="color: white; font-weight: 600;"> Recherche </span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TABLE CONTAINER -->
+                <div class="table-container">
+                    <!-- TABLE HEADER -->
+                    <div class="row table-header">
+                        <div class="col-1">
+                            <div class="table-cell text-start">
+                                N°
+                            </div>
+                        </div>
+
+                        <div class="col-2">
+                            <div class="table-cell text-center">
+                                ID Voie
+                            </div>
+                        </div>
+
+                        <div class="col-2">
+                            <div class="table-cell">
+                                Nom Voie    
+                            </div>
+                        </div>
+
+                        <div class="col-4">
+                            <div class="table-cell">
+                                Description 
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="table-cell text-center">
+                                Actions
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TABLE LIGNE -->
+                    {% for topo in page_obj %}
+                    <div class="row table-row text-center">
+                        <div class="col-1">
+                            <div class="table-cell text-start">
+                                {{ forloop.counter }}
+                            </div>
+                        </div>
+
+                        <div class="col-2">
+                            <div class="table-cell">
+                                 {{ topo.id_voies }}
+                            </div>
+                        </div>
+
+                         <div class="col-2">
+                            <div class="table-cell">
+                                {{ topo.nom_pada }}
+                            </div>
+                        </div>
+
+                        <div class="col-4 text-start">
+                            <div class="table-cell">
+                                {% if topo.description %}
+                                    <span class="truncated-text">{{ topo.description }}</span>
+                                {% else %}
+                                    <span> AUCUNE DESCRIPTION </span>
+                                {% endif %}
+                               
+                            </div>
+                        </div>
+
+                        <div class="col-3">
+                                <div class="table-cell">
+                                        <button  
+                                            class="action-btn 
+                                                {% if topo.statut == 'retour_toponymie' %} validate-btn
+                                                {% elif topo.statut == 'en_attente_cs' %} edit-btn
+                                                {% elif topo.statut == 'en_attente_coord' %} edit-btn
+                                                {% elif topo.statut == 'en_attente_mo' %} edit-btn
+                                                {% elif topo.statut == 'valider' %} edit-btn
+                                                {% else %} delete-btn {% endif %}" 
+                                            title="Suggestion Toponymie">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+
+                                        <button  
+                                            class="action-btn 
+                                                {% if topo.statut == 'en_attente_cs' %} validate-btn
+                                                {% elif topo.statut == 'en_attente_coord' %} edit-btn
+                                                {% elif topo.statut == 'en_attente_mo' %} edit-btn
+                                                {% elif topo.statut == 'valider' %} edit-btn
+                                                {% else %} delete-btn {% endif %}" 
+                                            title="Validation Chef se Service">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+
+
+                                        <button 
+                                            class="action-btn 
+                                                {% if topo.statut == 'en_attente_cs' %} delete-btn
+                                                {% elif topo.statut == 'en_attente_coord' %} validate-btn
+                                                {% elif topo.statut == 'en_attente_mo' %} edit-btn
+                                                {% elif topo.statut == 'valider' %} edit-btn
+                                                {% else %} delete-btn {% endif %}" 
+                                            title="Validation Coordinatrice">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+
+                                        <button 
+                                            class="action-btn 
+                                                {% if topo.statut == 'en_attente_cs' %} delete-btn
+                                                {% elif topo.statut == 'en_attente_coord' %} delete-btn
+                                                {% elif topo.statut == 'en_attente_mo' %} validate-btn
+                                                {% elif topo.statut == 'valider' %} edit-btn
+                                                {% else %} delete-btn {% endif %}" 
+                                            title="Validation MO">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+
+                                        {% if perms.myapp.voir_dashboard_toponyme %}
+                                        <a href="{% url 'dashboard_topo' topo.id_toponymie %}">
+                                            <button class="action-btn edit-btn" title="Voir statut">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </button>
+                                        </a>
+                                        {% endif %}
+
+
+                                        {% if perms.myapp.ajouter_description_toponyme %}
+                                        <a href="{% url 'ajouter_nouvelle_description' topo.id_toponymie %}">
+                                            <button class="action-btn edit-btn" title="Ajouter nouvelle description">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                        </a>
+                                        {% endif %}
+
+
+                                        <button class="action-btn delete-btn d-flex justify-content-center align-items-center" title="Voir Détails" style="margin-right: 5px;">
+                                                <i class="bi bi-eye text-primary" 
+                                                    style="cursor:pointer;" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#descModal{{ topo.id_toponymie }}">
+                                                </i>  
+                                        </button>
+                                </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal description pour cette voie -->
+                    <div class="modal fade" id="descModal{{ topo.id_toponymie }}" tabindex="-1" aria-labelledby="descModalLabel{{ topo.id_toponymie }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="descModalLabel{{ voie.id }}">
+                                        Description complète - {{ topo.nom_pada }}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                </div>
+                                <div class="modal-body">
+
+                                 <p><strong>ID Voie :</strong> 
+                                        {% if topo.id_voies %}
+                                            {{ topo.id_voies }}
+                                        {% else %}
+                                            <span> </span>
+                                        {% endif %}
+                                    </p>
+
+                                    <p><strong>Type de voie :</strong> 
+                                        {% if topo.type_voie %}
+                                            {{ topo.type_voie }}
+                                        {% else %}
+                                            <span> </span>
+                                        {% endif %}
+                                    </p>
+
+                                    <p><strong>Typologie :</strong> 
+                                        {% if topo.typologie %}
+                                            {{ topo.typologie }}
+                                        {% else %}
+                                            <span> </span>
+                                        {% endif %}
+                                    </p>
+
+                                    <p><strong>Commune :</strong> 
+                                        {% if topo.gid_commune %}
+                                            {{ topo.gid_commune }}
+                                        {% else %}
+                                            <span> </span>
+                                        {% endif %}
+                                    </p>
+
+                                    <p><strong>Quartier :</strong> 
+                                        {% if topo.quartier_origine %}
+                                            {{ topo.quartier_origine }}
+                                        {% else %}
+                                            <span> </span>
+                                        {% endif %}
+                                    </p>
+
+                                    <hr>
+                                    <p><strong>Description :</strong></p>
+                                    <p>{{ topo.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% endfor %}
+                </div>
+
+              
+                <div class="pagination-container d-flex justify-content-center mt-4">
+                    <nav>
+                        <ul class="pagination">
+
+                            <!-- Bouton premier -->
+                            {% if page_obj.number > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">««</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">««</span></li>
+                            {% endif %}
+
+                            <!-- Bouton précédent -->
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">«</span></li>
+                            {% endif %}
+
+                            <!-- Pages autour de la page actuelle -->
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num == page_obj.number %}
+                                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Bouton suivant -->
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">»</span></li>
+                            {% endif %}
+
+                            <!-- Bouton dernier -->
+                            {% if page_obj.number < page_obj.paginator.num_pages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">»»</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">»»</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+
+{% endblock %}

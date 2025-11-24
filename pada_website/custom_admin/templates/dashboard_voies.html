@@ -678,13 +678,13 @@
 
         // On redirige selon le type d'action
         if (currentAction === 'validate') {
-            url = `/admins/valider_cca/${currentVoieId}/`;
+            url = `/p_bnetd25/valider_cca/${currentVoieId}/`;
         } else if (currentAction === 'reject') {
-            url = `/admins/rejeter_cca/${currentVoieId}/`;
+            url = `/p_bnetd25/rejeter_cca/${currentVoieId}/`;
         } else if (currentAction === 'validate_mo') {
-            url = `/admins/valider_mo/${currentVoieId}/`;
+            url = `/p_bnetd25/valider_mo/${currentVoieId}/`;
         } else if (currentAction === 'reject_mo') {
-            url = `/admins/rejeter_mo/${currentVoieId}/`;
+            url = `/p_bnetd25/rejeter_mo/${currentVoieId}/`;
         }
 
         fetch(url, {

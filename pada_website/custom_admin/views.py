@@ -28,6 +28,7 @@ from django.contrib import messages
 from myapp.forms import AdminUserEditForm, AdminSetPasswordForm
 from django.db.models import Q
 from django.http import JsonResponse
+from myapp.models import Toponymie
 
 # Seuls les utilisateurs is_staff=True peuvent accéder
 def staff_check(user):
@@ -44,10 +45,17 @@ def dashboard(request):
     total_problemes = Probleme.objects.count()
     total_suggestions = Suggestion.objects.count()
 
-    # Compteurs par statut
+    # Compteurs par statut panneautage
     voies_en_attente_cca = Voie.objects.filter(statut='en_attente_cca').count()
     voies_en_attente_mo = Voie.objects.filter(statut='en_attente_mo').count()
     voies_validees_finalement = Voie.objects.filter(statut='validee_finalement').count()
+
+    # Compteurs par statut Toponymie
+    topo_retour_toponymie = Toponymie.objects.filter(statut='retour_toponymie').count()
+    topo__attente_cs = Toponymie.objects.filter(statut='en_attente_cs').count()
+    topo_attente_coord = Toponymie.objects.filter(statut='en_attente_coord').count()
+    topo_attente_mo = Toponymie.objects.filter(statut='en_attente_mo').count()
+    topo_valider = Toponymie.objects.filter(statut='valider').count()
 
     context = {
         'total_utilisateurs': total_utilisateurs,
@@ -57,6 +65,12 @@ def dashboard(request):
         'voies_en_attente_cca': voies_en_attente_cca,
         'voies_en_attente_mo': voies_en_attente_mo,
         'voies_validees_finalement': voies_validees_finalement,
+
+        'topo_retour_toponymie': topo_retour_toponymie,
+        'topo__attente_cs': topo__attente_cs,
+        'topo_attente_mo': topo_attente_mo,
+        'topo_valider': topo_valider,
+        'topo_attente_coord': topo_attente_coord,
     }
     return render(request, 'dashboard.html', context)
 
@@ -96,12 +110,13 @@ def voies_list(request):
     if query:
         voies = voies.filter(
             Q(nom_voies__icontains=query) |
+            Q(id_voies__icontains=query) |
             Q(quartier__icontains=query) |
             Q(description__icontains=query) |
             Q(entites_territoriales_2__icontains=query)
         )
 
-    paginator = Paginator(voies, 50)  # 10 enregistrements par page
+    paginator = Paginator(voies, 50)  # 50 enregistrements par page
 
     page_number = request.GET.get("page")  # récupère ?page=...
     page_obj = paginator.get_page(page_number)
@@ -217,7 +232,7 @@ def create_user(request):
             user.save()
             form.save_m2m()  # pour enregistrer les groupes et permissions
             messages.success(request, f"L'utilisateur {user.username} a été créé avec succès.")
-            return redirect('users_list')  # à créer plus bas
+            return redirect('users_list')  
     else:
         form = CustomUserForm()
     return render(request, 'create_user.html', {'form': form})
@@ -227,14 +242,12 @@ def create_user(request):
 #Supprimer Utilisateurs
 @permission_required('auth.delete_user', login_url='login')
 def delete_user(request, user_id):
-    # Seule la méthode POST doit supprimer
     if request.method != 'POST':
         messages.error(request, "Méthode invalide pour la suppression.")
         return redirect('users_list')
 
     user_to_delete = get_object_or_404(User, id=user_id)
 
-    # Empêcher un admin de se supprimer lui-même (optionnel mais recommandé)
     if request.user == user_to_delete:
         messages.error(request, "Vous ne pouvez pas vous supprimer vous-même.")
         return redirect('users_list')
@@ -252,12 +265,11 @@ def delete_user(request, user_id):
 def edit_user(request, user_id):
     user_obj = get_object_or_404(User, id=user_id)
 
-    # Protection : empêcher de retirer le dernier superuser
     def would_remove_last_superuser(post_data):
         # si on tente de désactiver is_superuser pour cet utilisateur
         new_is_super = post_data.get('is_superuser') == 'on'
         if user_obj.is_superuser and not new_is_super:
-            # combien de superusers actifs autres que celui-ci ?
+
             other_super_count = User.objects.filter(is_superuser=True).exclude(id=user_obj.id).count()
             return other_super_count == 0
         return False
@@ -271,8 +283,8 @@ def edit_user(request, user_id):
             form = AdminUserEditForm(request.POST, instance=user_obj)
             if form.is_valid():
                 form.save()
-                # groups & user_permissions m2m déjà gérés par form.save_m2m() si commit=False used;
                 messages.success(request, f"Utilisateur « {user_obj.username} » mis à jour.")
+
                 return redirect('users_list')
             else:
                 messages.error(request, "Erreur dans le formulaire. Vérifiez les champs.")
@@ -340,11 +352,12 @@ def valider_cca(request, voie_id):
 
         # Si c’est une requête AJAX → renvoyer un signal de redirection
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})
+            return JsonResponse({'redirect_url': '/p_bnetd25/suggestion_voie_list/'})
         
         # Sinon, rediriger normalement
         return redirect('suggestion_voie_list')
     return JsonResponse({'error': 'Méthode non autorisée'}, status=400)
+
 
 
 # Rejeter une nouvelle description par le CCA
@@ -359,7 +372,7 @@ def rejeter_cca(request, voie_id):
         messages.warning(request, f"La voie '{voie.nom_voies}' a été renvoyée à la Toponymie.")
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})
+            return JsonResponse({'redirect_url': '/p_bnetd25/suggestion_voie_list/'})
         return redirect('suggestion_voie_list')
     
     return JsonResponse({'error': 'Méthode non autorisée'}, status=400)
@@ -396,12 +409,13 @@ def suggestion_voie_list(request):
     if query:
         voies = voies.filter(
             Q(nom_voies__icontains=query) |
+            Q(id_voies__icontains=query) |
             Q(quartier__icontains=query) |
             Q(description__icontains=query) |
             Q(entites_territoriales_2__icontains=query)
         )
 
-    paginator = Paginator(voies, 50)  # 10 enregistrements par page
+    paginator = Paginator(voies, 50)  # 50 enregistrements par page
 
     page_number = request.GET.get("page")  # récupère ?page=...
     page_obj = paginator.get_page(page_number)
@@ -428,7 +442,7 @@ def suggestion_voie_list_en_attente_cca(request):
             Q(entites_territoriales_2__icontains=query)
         )
 
-    paginator = Paginator(voies, 50)  # 10 enregistrements par page
+    paginator = Paginator(voies, 50)  # 50 enregistrements par page
 
     page_number = request.GET.get("page")  # récupère ?page=...
     page_obj = paginator.get_page(page_number)
@@ -455,9 +469,9 @@ def suggestion_voie_list_en_attente_mo(request):
             Q(entites_territoriales_2__icontains=query)
         )
 
-    paginator = Paginator(voies, 50)  # 10 enregistrements par page
+    paginator = Paginator(voies, 50)  # 50 enregistrements par page
 
-    page_number = request.GET.get("page")  # récupère ?page=...
+    page_number = request.GET.get("page")  
     page_obj = paginator.get_page(page_number)
 
     return render(request, "suggestion_voie_list.html", {
@@ -517,7 +531,7 @@ def valider_mo(request, voie_id):
         f"La voie « {voie.nom_voies} » a été validée définitivement. La nouvelle description a été enregistrée."
     )
 
-    return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})
+    return JsonResponse({'redirect_url': '/p_bnetd25/suggestion_voie_list/'})
 
 
 
@@ -528,4 +542,297 @@ def rejeter_mo(request, voie_id):
     voie.date_derniere_modification = timezone.now()
     voie.save()
     messages.warning(request, f"La voie « {voie.nom_voies} » a été renvoyée à la Toponymie.")
-    return JsonResponse({'redirect_url': '/admins/suggestion_voie_list/'})
+    return JsonResponse({'redirect_url': '/p_bnetd25/suggestion_voie_list/'})
+
+
+
+
+# Liste des toponymes
+def toponyme_list(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    topo = Toponymie.objects.all().order_by('id_toponymie')
+
+    if query:
+        topo = topo.filter(
+          Q(nom_pada__icontains=query) |
+            Q(description__icontains=query) |
+            Q(type_voie__icontains=query) |
+            Q(quartier_origine__icontains=query) |
+            Q(id_voies__icontains=query) |
+            Q(gid_commune__icontains=query)
+        )
+
+    paginator = Paginator(topo, 50)  # 50 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "toponymie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+# Liste des toponymes en attente pour toponymie
+def topo_attente_topo(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    topo = Toponymie.objects.filter(statut='retour_toponymie').order_by('id_toponymie')
+
+    if query:
+        topo = topo.filter(
+          Q(nom_pada__icontains=query) |
+            Q(description__icontains=query) |
+            Q(type_voie__icontains=query) |
+            Q(quartier_origine__icontains=query) |
+            Q(id_voies__icontains=query) |
+            Q(gid_commune__icontains=query)
+        )
+
+    paginator = Paginator(topo, 50)  # 50 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "toponymie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+# Liste des toponymes en attente pour CS
+def topo_attente_cs(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    topo = Toponymie.objects.filter(statut='en_attente_cs').order_by('id_toponymie')
+
+    if query:
+        topo = topo.filter(
+          Q(nom_pada__icontains=query) |
+            Q(description__icontains=query) |
+            Q(type_voie__icontains=query) |
+            Q(quartier_origine__icontains=query) |
+            Q(id_voies__icontains=query) |
+            Q(gid_commune__icontains=query)
+        )
+
+    paginator = Paginator(topo, 50)  # 50 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "toponymie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+
+# Liste des toponymes en attente pour COORD
+def topo_attente_coord(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    topo = Toponymie.objects.filter(statut='en_attente_coord').order_by('id_toponymie')
+
+    if query:
+        topo = topo.filter(
+          Q(nom_pada__icontains=query) |
+            Q(description__icontains=query) |
+            Q(type_voie__icontains=query) |
+            Q(quartier_origine__icontains=query) |
+            Q(id_voies__icontains=query) |
+            Q(gid_commune__icontains=query)
+        )
+
+    paginator = Paginator(topo, 50)  # 50 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "toponymie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+
+
+# Liste des toponymes en attente pour MO
+def topo_attente_mo(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    topo = Toponymie.objects.filter(statut='en_attente_mo').order_by('id_toponymie')
+
+    if query:
+        topo = topo.filter(
+          Q(nom_pada__icontains=query) |
+            Q(description__icontains=query) |
+            Q(type_voie__icontains=query) |
+            Q(quartier_origine__icontains=query) |
+            Q(id_voies__icontains=query) |
+            Q(gid_commune__icontains=query)
+        )
+
+    paginator = Paginator(topo, 50)  # 50 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "toponymie_list.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+
+# Voir le dashboard de la toponymie d'une voie
+def dashboard_topo(request, topo_id):
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+    return render(request, 'dashboard_topo.html', {'topo': topo})
+
+
+# Ajouter une nouvelle description toponymie
+def ajouter_nouvelle_description(request, topo_id):
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    if request.method == "POST":
+        nouvelle_desc = request.POST.get("nouvelle_description")
+        topo.nouvelle_description = nouvelle_desc
+        topo.statut = 'en_attente_cs'
+        topo.save()
+
+        messages.success(request, "Nouvelle description enregistrée.")
+        return redirect('toponymie_list')
+
+    return render(request, "ajouter_nouvelle_description.html", {"topo": topo})
+
+
+# Valider CS toponymie
+def valider_cs(request, topo_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    topo.validation_cs = True
+    topo.statut = 'en_attente_coord'
+    topo.save()
+
+    messages.success(
+        request,
+        f"La proposition pour « {topo.nom_pada} » a été validée avec succès."
+    )
+
+    return JsonResponse({"redirect_url": "/p_bnetd25/toponymie/"})
+
+
+# Rejeter CS toponymie
+def rejeter_cs(request, topo_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    topo.validation_cs = False
+    topo.statut = 'retour_toponymie'
+    topo.save()
+
+    messages.error(
+        request,
+        f"La proposition pour « {topo.nom_pada} » a été rejetée."
+    )
+
+    return JsonResponse({
+        "redirect_url": "/p_bnetd25/toponymie/"
+    })
+
+
+
+# Valider CCA toponymie
+def valider_coord(request, topo_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    topo.validation_coord = True
+    topo.statut = 'en_attente_mo'
+    topo.save()
+
+    messages.success(
+        request,
+        f"La proposition pour « {topo.nom_pada} » a été validée par la Cellule de la Centrale d’Adressage (COORD)."
+    )
+
+    return JsonResponse({"redirect_url": "/p_bnetd25/toponymie/"})
+
+
+
+# Rejeter CCA toponymie
+def rejeter_coord(request, topo_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    topo.validation_coord = False
+    topo.validation_cs = False
+    topo.statut = 'retour_toponymie'
+    topo.save()
+
+    messages.error(
+        request,
+        f"La proposition pour « {topo.nom_pada} » a été rejetée par la Cellule de la Centrale d’Adressage (COORD)."
+    )
+
+    return JsonResponse({"redirect_url": "/p_bnetd25/toponymie/"})
+
+
+
+# Valider MO toponymie
+def validation_mo_topo(request, topo_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    topo.validation_mo = True
+    topo.description = topo.nouvelle_description
+    topo.statut = 'valider'
+    topo.save()
+
+    messages.success(
+        request,
+        f"La proposition pour « {topo.nom_pada} » a été validée par le Maitre d'Ouvrage"
+    )
+
+    return JsonResponse({"redirect_url": "/p_bnetd25/toponymie/"})
+
+
+
+# Rejeter MO toponymie
+def reject_mo_topo(request, topo_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    topo.validation_mo = False
+    topo.validation_cs = False
+    topo.validation_coord = False
+    topo.statut = 'retour_toponymie'
+    topo.save()
+
+    messages.error(
+        request,
+        f"La proposition pour « {topo.nom_pada} » a été rejetée par par le Maitre d'Ouvrage"
+    )
+
+    return JsonResponse({"redirect_url": "/p_bnetd25/toponymie/"})
+
+
+
+
+
+
+

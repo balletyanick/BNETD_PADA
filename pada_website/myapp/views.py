@@ -9,28 +9,66 @@ import requests
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import ProblemeForm
 from django.http import JsonResponse
+from myapp.models import Toponymie
+
+
 
 def home_view(request, qr_code):
-    # Nettoyage du QR code
+
     cleaned_qr = qr_code.replace('https://panneautage.bnetd.ci/', '').strip()
     full_qr_code = f"https://panneautage.bnetd.ci/{cleaned_qr}"
-    
-    # Récupération de la voie (maintenant utilisée dans le contexte) 
+
+    # Récupération de la voie
     voie = get_object_or_404(Voie, qr_code=full_qr_code)
-    
-    # Construction du contexte en utilisant directement les attributs de 'voie'
-    return render(request, 'home.html', {
-        'description_rue': voie.description,
-        'nom_rue': voie.nom_voies,
-        'quartier_rue': voie.quartier,
-        'commune_rue': voie.entites_territoriales_2,
+
+    # Récupérer la ligne toponymie correspondante (si elle existe)
+    topo = Toponymie.objects.filter(id_voies=voie.id_voies).first()
+
+    # Fonction utilitaire: renvoie valeur topo OU valeur voie
+    def prefer(topo_value, voie_value):
+        if topo_value is None:
+            return voie_value
+        if isinstance(topo_value, str) and topo_value.strip() == "":
+            return voie_value
+        return topo_value
+
+    context = {
+        # 🟩 description : priorité toponymie
+        'description_rue': prefer(
+            topo.description if topo else None,
+            voie.description
+        ),
+
+        # 🟩 nom : priorité nom_pada de toponymie
+        'nom_rue': prefer(
+            topo.nom_pada if topo else None,
+            voie.nom_voies
+        ),
+
+        # 🟩 quartier : priorité quartier_origine
+        'quartier_rue': prefer(
+            topo.quartier_origine if topo else None,
+            voie.quartier
+        ),
+
+        # 🟩 commune : priorité gid_commune
+        'commune_rue': prefer(
+            topo.gid_commune if topo else None,
+            voie.entites_territoriales_2
+        ),
+
+        # Ce qui reste ne change pas
         'x': voie.X,
         'y': voie.Y,
         'qr_code': cleaned_qr,
         'photo_personnalite': voie.get_absolute_photo_url(),
         'has_personnalite_photo': voie.has_personnalite_photo,
-        'voie': voie,  # Ajout de l'objet complet au contexte si nécessaire
-    })
+        'voie': voie,
+    }
+
+    return render(request, 'home.html', context)
+
+
 
 def redirect_view(request):
     # Logique de la vue de redirection

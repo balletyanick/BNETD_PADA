@@ -37,7 +37,7 @@
                         </div>
                         {% endif %}
 
-                        <!-- Card 3: Panneaux -->
+                        <!-- Card 3: Problèmes -->
                         {% if perms.myapp.view_probleme %}
                         <div class="col-md-3">
                             <div class="stat-card">
@@ -52,7 +52,7 @@
                         </div>
                         {% endif %}
 
-                        <!-- Card 4: Projets -->
+                        <!-- Card 4: Suggestions -->
                         {% if perms.myapp.view_suggestion %}
                         <div class="col-md-3">
                             <div class="stat-card">
@@ -68,7 +68,7 @@
                         {% endif %}
 
 
-                        {% if perms.myapp.suggestion_cca %}
+                        {% if perms.myapp.voir_suggestion_voie_attente_cca %}
                         <div class="col-md-3">
                             <a href="{% url 'suggestion_voie_list' %}" style="text-decoration: none;">
                                 <div class="stat-card">
@@ -84,7 +84,7 @@
                         </div>
                         {% endif %}
 
-                        {% if perms.myapp.voir_suggestion_voie %}
+                        {% if perms.myapp.voir_suggestion_voie_attent_mo %}
                         <div class="col-md-3">
                             <a href="{% url 'suggestion_voie_list' %}" style="text-decoration: none;">
                                 <div class="stat-card">
@@ -116,6 +116,72 @@
                         </div>
                         {% endif %}
 
+                    </div>
+
+                      <div class="row g-4 mt-4 py-4">
+                        {% if perms.myapp.voir_topo_attente_toponymie %}
+                        <div class="col-md-3">
+                            <a href="{% url 'topo_attente_topo' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-people-fill"></i>
+                                        </div>
+                                        <div class="stat-title"> TOPONYME. DESC. EN ATTENTE TOPONYMIE  </div>
+                                    </div>
+                                    <div class="stat-value"> {{ topo_retour_toponymie }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% if perms.myapp.voir_topo_attente_CS %}
+                        <div class="col-md-3">
+                            <a href="{% url 'topo_attente_cs' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-signpost-2-fill"></i>
+                                        </div>
+                                        <div class="stat-title">TOPONYME. DESC. EN ATTENTE CS </div>
+                                    </div>
+                                    <div class="stat-value"> {{ topo__attente_cs }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        {% if perms.myapp.voir_topo_attente_mo %}
+                        <div class="col-md-3">
+                            <a href="{% url 'topo_attente_mo' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-sign-stop-fill"></i>
+                                        </div>
+                                        <div class="stat-title">TOPONYME. DESC. EN ATTENTE MO</div> 
+                                    </div>
+                                    <div class="stat-value"> {{ topo_attente_mo }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+
+                         {% if perms.myapp.voir_topo_attente_CCA %}
+                        <div class="col-md-3">
+                            <a href="{% url 'topo_attente_coord' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-sign-stop-fill"></i>
+                                        </div>
+                                        <div class="stat-title">TOPONYME. DESC. EN ATTENTE CCA</div> 
+                                    </div>
+                                    <div class="stat-value"> {{ topo_attente_coord }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
           

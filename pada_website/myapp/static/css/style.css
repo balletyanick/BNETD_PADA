@@ -111,7 +111,7 @@
 
     .action-btn.delete-btn:hover {
         background-color: #ffebee !important;
-        border-color: #f44336 !important;
+        border-color: #f44336 !important; 
     }
 
     .action-btn i {
@@ -158,6 +158,22 @@
     }
 
     #addUtilisateur:hover {
+        background-color: #e66d00;
+    }
+
+    #addAttente {
+        font-size: 14px; 
+        font-weight: 600; 
+        padding: 14px 20px; 
+        background-color: #323131;
+        border: none;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+        letter-spacing: 0.5px !important;
+
+    }
+
+    #addAttente:hover {
         background-color: #e66d00;
     }
 

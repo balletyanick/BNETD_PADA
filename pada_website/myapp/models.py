@@ -15,6 +15,9 @@ class Voie(models.Model):
     entites_territoriales_2 = models.TextField()
     photo_personnalite = models.CharField(max_length=255, null=True, blank=True)
 
+    id_voies = models.IntegerField(null=True, blank=True)
+
+
     # --- Nouveaux champs pour le processus de validation ---
     description_proposee = models.TextField(null=True, blank=True)
     suggestion_cca = models.TextField(null=True, blank=True)
@@ -191,7 +194,75 @@ class publicites(models.Model):
     
 
 
+class Toponymie(models.Model):
 
+    id_toponymie = models.AutoField(primary_key=True)
 
+    nom_pada = models.TextField(null=True, blank=True)
+    type_voie = models.TextField(null=True, blank=True)
+    nouvelle_description = models.TextField(null=True, blank=True)
+    statut = models.CharField(max_length=30, null=True, blank=True,)
 
+    toponyme = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    typologie = models.TextField(null=True, blank=True)
+    quartier_origine = models.TextField(null=True, blank=True)
 
+    id_voies = models.IntegerField(null=True, blank=True)
+    gid_commune = models.IntegerField(null=True, blank=True)
+
+    date_insert = models.DateField(null=True, blank=True)
+    date_modif_toponyme = models.DateField(null=True, blank=True)
+    date_modif_description = models.DateField(null=True, blank=True)
+
+    validation_cs = models.BooleanField(default=False)
+    validation_coord = models.BooleanField(default=False)
+    validation_mo = models.BooleanField(default=False)
+
+    categorie = models.TextField(null=True, blank=True)
+    genre = models.TextField(null=True, blank=True)
+    autoris_modification = models.TextField(null=True, blank=True)
+
+    auteur_modif_toponyme = models.TextField(null=True, blank=True)
+    auteur_modif_desc = models.TextField(null=True, blank=True)
+    hist_desc = models.TextField(null=True, blank=True)
+    hist_toponyme = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = '"501_siga_toponymie"'   # Schéma public par défaut
+        managed = False
+        permissions = [
+            ("list_toponyme", "Voir List Toponyme"),
+            ("ajouter_description_toponyme", "Ajouter une nouvelle description toponyme"),
+            ("voir_dashboard_toponyme", "Voir Dashboard Toponyme"),
+            
+            ("valider_cs_topo", "Valider Par CS TOPO"),
+            ("rejeter_cs_topo", "Refuser par CS TOPO"),
+
+            ("valider_coord_topo", "Valider Par CCA TOPO"),
+            ("rejeter_coord_topo", "Refuser par CCA TOPO"),
+
+            ("valider_mo_topo", "Valider Par MO TOPO"),
+            ("rejeter_mo_topo", "Refuser par MO TOPO"),
+
+            ("voir_topo_attente_toponymie", "Voir Toponymie en attente de Tponymie"),
+            ("voir_topo_attente_CS", "Voir Toponymie en attente de cs"),
+            ("voir_topo_attente_CCA", "Voir Toponymie en attente de CCA"),
+            ("voir_topo_attente_mo", "Voir Toponymie en attente de MO"),
+        ]
+
+    def __str__(self):
+        return self.toponyme or "Toponyme"
+  
+    @property
+    def get_statut_label(self):
+        mapping = {
+            "en_attente_cs": "En attente validation Chef de service",
+            "en_attente_coord": "En attente validation Coordinatrice",
+            "en_attente_mo": "En attente validation MO",
+            "valider": "Validée définitivement",
+            "aucune_modification": "Aucune modification",
+            "retour_toponymie": "Retour à la Toponymie",
+            
+        }
+        return mapping.get(self.statut, "Aucune modification")

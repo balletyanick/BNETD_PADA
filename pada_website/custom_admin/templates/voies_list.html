@@ -131,15 +131,14 @@
                                     {% endif %}
 
 
-                                    {% if voie.description|length > 50 %}  {# Affiche l’icône seulement si texte long #}
-                                        <button class="action-btn delete-btn d-flex justify-content-center align-items-center">
+                                    {# Affiche l’icône seulement si texte long #}
+                                    <button class="action-btn delete-btn d-flex justify-content-center align-items-center">
                                             <i class="bi bi-eye text-primary" 
                                                 style="cursor:pointer;" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#descModal{{ voie.id }}">
                                             </i>  
-                                        </button>
-                                    {% endif %}
+                                    </button>
                                 </div>
                         </div>
                     </div>
@@ -155,6 +154,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                                 </div>
                                 <div class="modal-body">
+                                    <p><strong>ID Voie :</strong> {{ voie.id_voies }}</p>
                                     <p><strong>Commune :</strong> {{ voie.entites_territoriales_2 }}</p>
                                     <p><strong>Quartier :</strong> {{ voie.quartier }}</p>
                                     <p><strong>Voie :</strong> {{ voie.nom_voies }}</p>
