@@ -466,7 +466,7 @@
         margin-left: auto;
         position: absolute;
         right: 0;
-        bottom: -50px;
+        bottom: -75px;
     }
 
     #probleme-container {
@@ -1043,7 +1043,7 @@
                 <div class="info-label">Nom de la voie</div>
                 <div class="info-value">
                     <i class="ri-direction-fill"></i>
-                    <span>{{ nom_rue }}</span>
+                    <span>{{ nom_rue|default:"" }}</span>
                 </div>
             </div>
  
@@ -1052,14 +1052,14 @@
                     <div class="info-label">Commune</div>
                     <div class="info-value">
                         <i class="ri-building-fill"></i>
-                        <span>{{ commune_rue }}</span>
+                        <span>{{ commune_rue|default:"" }}</span>
                     </div>
                 </div>
                 <div class="info-group">
                     <div class="info-label">Quartier</div>
                     <div class="info-value">
                         <i class="ri-community-fill"></i>
-                        <span>{{ quartier_rue }}</span>
+                        <span>{{ quartier_rue|default:"" }}</span>
                     </div>
                 </div>
             </div>
@@ -1079,7 +1079,7 @@
                         <div class="description-content">
                             <div class="description-scroll" id="desc">
                                 <i class="ri-information-fill"></i>
-                                <span id="desc-text">{{ description_rue }}</span>
+                                <span id="desc-text">{{ description_rue|default:"" }}</span>
                             </div>
                             <div class="see-more" id="see-more" onclick="toggleDescription()">Plus</div>
                         </div>
@@ -1440,7 +1440,7 @@ var circle = L.circle([y, x], {
         // Afficher la popup après 5 secondes
         setTimeout(() => {
             openPubPopup();
-        }, 5000);
+        }, 1);
     })();
 
     function openPubPopup() {

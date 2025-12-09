@@ -56,6 +56,8 @@ def dashboard(request):
     topo_attente_coord = Toponymie.objects.filter(statut='en_attente_coord').count()
     topo_attente_mo = Toponymie.objects.filter(statut='en_attente_mo').count()
     topo_valider = Toponymie.objects.filter(statut='valider').count()
+    topo_sans_description = Toponymie.objects.filter(nouvelle_description__isnull=True).count()
+
 
     context = {
         'total_utilisateurs': total_utilisateurs,
@@ -71,6 +73,7 @@ def dashboard(request):
         'topo_attente_mo': topo_attente_mo,
         'topo_valider': topo_valider,
         'topo_attente_coord': topo_attente_coord,
+        'topo_sans_description': topo_sans_description,
     }
     return render(request, 'dashboard.html', context)
 
@@ -341,6 +344,7 @@ def dashboard_voies(request, voie_id):
 
 
 # Valider une nouvelle description par le CCA
+@permission_required('myapp.valider_cca', login_url='login')
 def valider_cca(request, voie_id):
     voie = get_object_or_404(Voie, id=voie_id)
     
@@ -361,6 +365,7 @@ def valider_cca(request, voie_id):
 
 
 # Rejeter une nouvelle description par le CCA
+@permission_required('myapp.rejeter_cca', login_url='login')
 def rejeter_cca(request, voie_id):
 
     voie = get_object_or_404(Voie, id=voie_id)
@@ -481,6 +486,7 @@ def suggestion_voie_list_en_attente_mo(request):
 
 
 # Ajouter une suggestion par le CCA
+@permission_required('myapp.ajouter_suggestion_cca', login_url='login')
 def ajouter_suggestion_cca(request, voie_id):
     voie = get_object_or_404(Voie, id=voie_id)
     
@@ -498,6 +504,7 @@ def ajouter_suggestion_cca(request, voie_id):
 
 
 # Ajouter une suggestion par le MO
+@permission_required('myapp.ajouter_suggestion_mo', login_url='login')
 def ajouter_suggestion_mo(request, voie_id):
     voie = get_object_or_404(Voie, id=voie_id)
     
@@ -515,6 +522,7 @@ def ajouter_suggestion_mo(request, voie_id):
 
 
 # Validation par le MO
+@permission_required('myapp.valider_mo', login_url='login')
 def valider_mo(request, voie_id):
     voie = get_object_or_404(Voie, id=voie_id)
 
@@ -536,6 +544,7 @@ def valider_mo(request, voie_id):
 
 
 # Rejet par le MO
+@permission_required('myapp.rejeter_mo', login_url='login')
 def rejeter_mo(request, voie_id):
     voie = get_object_or_404(Voie, id=voie_id)
     voie.statut = 'retour_toponymie'
@@ -548,6 +557,7 @@ def rejeter_mo(request, voie_id):
 
 
 # Liste des toponymes
+@permission_required('myapp.list_toponyme', login_url='login')
 def toponyme_list(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -559,8 +569,7 @@ def toponyme_list(request):
             Q(description__icontains=query) |
             Q(type_voie__icontains=query) |
             Q(quartier_origine__icontains=query) |
-            Q(id_voies__icontains=query) |
-            Q(gid_commune__icontains=query)
+            Q(id_voies__icontains=query) 
         )
 
     paginator = Paginator(topo, 50)  # 50 enregistrements par page
@@ -573,7 +582,42 @@ def toponyme_list(request):
         "query": query,
     })
 
+
+
+
+
+# Liste des toponymes sans desc.
+
+@permission_required('myapp.list_toponyme_sans_desc', login_url='login')
+def toponyme_list_sans_desc(request):
+   
+    query = request.GET.get("q")  # récupération du mot-clé
+    topo = Toponymie.objects.filter(nouvelle_description__isnull=True).order_by('id_toponymie')
+
+    if query:
+        topo = topo.filter(
+          Q(nom_pada__icontains=query) |
+            Q(description__icontains=query) |
+            Q(type_voie__icontains=query) |
+            Q(quartier_origine__icontains=query) |
+            Q(id_voies__icontains=query) 
+        )
+
+    paginator = Paginator(topo, 50)  # 50 enregistrements par page
+
+    page_number = request.GET.get("page")  # récupère ?page=...
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "topo_list_sans_desc.html", {
+        "page_obj": page_obj,
+        "query": query,
+    })
+
+
+
+
 # Liste des toponymes en attente pour toponymie
+@permission_required('myapp.voir_topo_attente_toponymie', login_url='login')
 def topo_attente_topo(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -601,6 +645,7 @@ def topo_attente_topo(request):
 
 
 # Liste des toponymes en attente pour CS
+@permission_required('myapp.voir_topo_attente_CS', login_url='login')
 def topo_attente_cs(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -629,6 +674,7 @@ def topo_attente_cs(request):
 
 
 # Liste des toponymes en attente pour COORD
+@permission_required('myapp.voir_topo_attente_CCA', login_url='login')
 def topo_attente_coord(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -658,6 +704,7 @@ def topo_attente_coord(request):
 
 
 # Liste des toponymes en attente pour MO
+@permission_required('myapp.voir_topo_attente_mo', login_url='login')
 def topo_attente_mo(request):
    
     query = request.GET.get("q")  # récupération du mot-clé
@@ -686,12 +733,14 @@ def topo_attente_mo(request):
 
 
 # Voir le dashboard de la toponymie d'une voie
+@permission_required('myapp.voir_dashboard_toponyme', login_url='login')
 def dashboard_topo(request, topo_id):
     topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
     return render(request, 'dashboard_topo.html', {'topo': topo})
 
 
 # Ajouter une nouvelle description toponymie
+@permission_required('myapp.ajouter_description_toponyme', login_url='login')
 def ajouter_nouvelle_description(request, topo_id):
     topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
 
@@ -708,6 +757,7 @@ def ajouter_nouvelle_description(request, topo_id):
 
 
 # Valider CS toponymie
+@permission_required('myapp.valider_cs_topo', login_url='login')
 def valider_cs(request, topo_id):
     if request.method != "POST":
         return JsonResponse({"error": "Méthode non autorisée"}, status=405)
@@ -727,6 +777,7 @@ def valider_cs(request, topo_id):
 
 
 # Rejeter CS toponymie
+@permission_required('myapp.rejeter_cs_topo', login_url='login')
 def rejeter_cs(request, topo_id):
     if request.method != "POST":
         return JsonResponse({"error": "Méthode non autorisée"}, status=405)
@@ -749,6 +800,7 @@ def rejeter_cs(request, topo_id):
 
 
 # Valider CCA toponymie
+@permission_required('myapp.valider_coord_topo', login_url='login')
 def valider_coord(request, topo_id):
     if request.method != "POST":
         return JsonResponse({"error": "Méthode non autorisée"}, status=405)
@@ -769,6 +821,7 @@ def valider_coord(request, topo_id):
 
 
 # Rejeter CCA toponymie
+@permission_required('myapp.rejeter_coord_topo', login_url='login')
 def rejeter_coord(request, topo_id):
     if request.method != "POST":
         return JsonResponse({"error": "Méthode non autorisée"}, status=405)
@@ -790,6 +843,7 @@ def rejeter_coord(request, topo_id):
 
 
 # Valider MO toponymie
+@permission_required('myapp.valider_mo_topo', login_url='login')
 def validation_mo_topo(request, topo_id):
     if request.method != "POST":
         return JsonResponse({"error": "Méthode non autorisée"}, status=405)
@@ -811,6 +865,7 @@ def validation_mo_topo(request, topo_id):
 
 
 # Rejeter MO toponymie
+@permission_required('myapp.rejeter_mo_topo', login_url='login')
 def reject_mo_topo(request, topo_id):
     if request.method != "POST":
         return JsonResponse({"error": "Méthode non autorisée"}, status=405)
@@ -833,6 +888,7 @@ def reject_mo_topo(request, topo_id):
 
 
 # Ajouter une suggestion par le MO
+@permission_required('myapp.suggestion_topo_MO', login_url='login')
 def ajouter_suggestion_mo_topo(request, voie_id):
     topo = get_object_or_404(Toponymie, id_toponymie=voie_id)
     
@@ -853,7 +909,8 @@ def ajouter_suggestion_mo_topo(request, voie_id):
     return redirect('toponymie_list')
 
 
-# Ajouter une suggestion par le MO
+# Ajouter une suggestion par le CS
+@permission_required('myapp.suggestion_topo_CS', login_url='login')
 def ajouter_suggestion_cs_topo(request, voie_id):
     topo = get_object_or_404(Toponymie, id_toponymie=voie_id)
     
@@ -872,7 +929,8 @@ def ajouter_suggestion_cs_topo(request, voie_id):
 
 
 
-# Ajouter une suggestion par le MO
+# Ajouter une suggestion par le CCA 
+@permission_required('myapp.suggestion_topo_CCA', login_url='login')
 def ajouter_suggestion_cca_topo(request, voie_id):
     topo = get_object_or_404(Toponymie, id_toponymie=voie_id)
     
@@ -888,6 +946,32 @@ def ajouter_suggestion_cca_topo(request, voie_id):
             messages.warning(request, "Veuillez entrer une suggestion avant d’envoyer.")
     
     return redirect('toponymie_list')
+
+
+
+# Modifier la toponymie
+@permission_required('myapp.edit_toponyme', login_url='login')
+def edit_toponyme(request, topo_id):
+    topo = get_object_or_404(Toponymie, id_toponymie=topo_id)
+
+    if request.method == "POST":
+        topo.nom_pada = request.POST.get("nom_pada")
+        topo.type_voie = request.POST.get("type_voie")
+        topo.toponyme = request.POST.get("toponyme")
+        topo.nouvelle_description = request.POST.get("description")
+
+        topo.typologie = request.POST.get("typologie")
+        topo.categorie = request.POST.get("categorie")
+
+        topo.date_modif_toponyme = timezone.now()
+
+        topo.statut = 'en_attente_cs'
+        topo.save()
+
+        messages.success(request, "Toponyme enregistrée.")
+        return redirect('toponymie_list')
+
+    return render(request, "edit_toponyme.html", {"topo": topo})
 
 
 

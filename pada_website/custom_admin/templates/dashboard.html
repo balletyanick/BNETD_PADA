@@ -50,24 +50,8 @@
                                 <div class="stat-value"> {{ total_problemes }} </div>
                             </div>
                         </div>
-                        {% endif %}
 
-                        <!-- Card 4: Suggestions -->
-                        {% if perms.myapp.view_suggestion %}
-                        <div class="col-md-3">
-                            <div class="stat-card">
-                                <div class="stat-header">
-                                    <div class="stat-icon">
-                                        <i class="bi bi-folder-fill"></i>
-                                    </div>
-                                    <div class="stat-title">Suggestions</div>
-                                </div>
-                                <div class="stat-value"> {{ total_suggestions }} </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-
+                        
                         {% if perms.myapp.voir_suggestion_voie_attente_cca %}
                         <div class="col-md-3">
                             <a href="{% url 'suggestion_voie_list' %}" style="text-decoration: none;">
@@ -115,6 +99,26 @@
                             </a>
                         </div>
                         {% endif %}
+                        
+                        {% endif %}
+
+                        <!-- Card 4: Suggestions -->
+                        {% if perms.myapp.view_suggestion %}
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon">
+                                        <i class="bi bi-folder-fill"></i>
+                                    </div>
+                                    <div class="stat-title">Suggestions</div>
+                                </div>
+                                <div class="stat-value"> {{ total_suggestions }} </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+
+                    
 
                     </div>
 
@@ -127,13 +131,31 @@
                                         <div class="stat-icon">
                                             <i class="bi bi-people-fill"></i>
                                         </div>
-                                        <div class="stat-title"> TOPONYME. DESC. EN ATTENTE TOPONYMIE  </div>
+                                        <div class="stat-title"> NOMBRE DE DESC. DES TOPONYMES N'AYANT PAS ETE VALIDES  </div>
                                     </div>
                                     <div class="stat-value"> {{ topo_retour_toponymie }} </div>
                                 </div>
                             </a>
                         </div>
                         {% endif %}
+
+
+                        {% if perms.myapp.list_toponyme_sans_desc %}
+                        <div class="col-md-3">
+                            <a href="{% url 'topo_list_sans_desc' %}" style="text-decoration: none;">
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-icon">
+                                            <i class="bi bi-people-fill"></i>
+                                        </div>
+                                        <div class="stat-title"> TOPONYME SANS DESCRIPTION  </div>
+                                    </div>
+                                    <div class="stat-value"> {{ topo_sans_description }} </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+
 
                         {% if perms.myapp.voir_topo_attente_CS %}
                         <div class="col-md-3">

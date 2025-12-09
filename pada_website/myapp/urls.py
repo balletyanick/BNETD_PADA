@@ -10,6 +10,9 @@ urlpatterns = [
     path('<str:qr_code>/signaler-probleme/', views.signaler_probleme, name='signaler_probleme'),
 
 
+
+
+
     path('redirect/', views.redirect_view, name='redirect_view'),
     path('<str:qr_code>/', views.home_view, name='home_view'),
     re_path(r'^(?P<qr_code>[^/]+)/media/(?P<photo_path>.*)$', views.serve_personnalite_photo, name='serve-personnalite-photo'),

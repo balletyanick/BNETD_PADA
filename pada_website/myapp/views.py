@@ -11,7 +11,9 @@ from .forms import ProblemeForm
 from django.http import JsonResponse
 from myapp.models import Toponymie
 
-
+# Page 404
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
 
 def home_view(request, qr_code):
 
@@ -141,27 +143,27 @@ def serve_personnalite_photo(request, qr_code, photo_path):
 
 
 
-def signaler_probleme(request, qr_code):
+# def signaler_probleme(request, qr_code):
     
-    qr_code_clean = qr_code.strip('/')  # on nettoie le code
-    voie = get_object_or_404(Voie, qr_code__icontains=qr_code_clean)
+#     qr_code_clean = qr_code.strip('/')  # on nettoie le code
+#     voie = get_object_or_404(Voie, qr_code__icontains=qr_code_clean)
 
     
 
-    if request.method == 'POST':
-        form = ProblemeForm(request.POST)
-        if form.is_valid():
-            probleme = form.save(commit=False)
-            probleme.voie = voie
-            probleme.save()
-            return render(request, 'signalement_succes.html', {'voie': voie})
-    else:
-        form = ProblemeForm()
+#     if request.method == 'POST':
+#         form = ProblemeForm(request.POST)
+#         if form.is_valid():
+#             probleme = form.save(commit=False)
+#             probleme.voie = voie
+#             probleme.save()
+#             return render(request, 'signalement_succes.html', {'voie': voie})
+#     else:
+#         form = ProblemeForm()
 
-    return render(request, 'signaler_probleme.html', {
-        'form': form,
-        'voie': voie
-    })
+#     return render(request, 'signaler_probleme.html', {
+#         'form': form,
+#         'voie': voie
+#     })
 
 
 

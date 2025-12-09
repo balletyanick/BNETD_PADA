@@ -180,14 +180,27 @@
                                         </a>
                                         {% endif %}
 
-
                                         {% if perms.myapp.ajouter_description_toponyme %}
-                                        <a href="{% url 'ajouter_nouvelle_description' topo.id_toponymie %}">
-                                            <button class="action-btn edit-btn" title="Ajouter nouvelle description">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </button>
-                                        </a>
+                                            {% if not topo.validation_cs and not topo.validation_coord and not topo.validation_mo %}
+
+                                                <a href="{% url 'ajouter_nouvelle_description' topo.id_toponymie %}">
+                                                    <button class="action-btn edit-btn" title="Ajouter nouvelle description">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </button>
+                                                </a>
+
+                                            {% endif %}
                                         {% endif %}
+
+                                     
+                                        {% if perms.myapp.edit_toponyme %}
+                                            <a href="{% url 'edit_toponyme' topo.id_toponymie %}">
+                                                        <button class="action-btn" title="Modifier Toponyme">
+                                                            <i class="bi bi-plus-circle"></i>
+                                                        </button>
+                                            </a>
+                                        {% endif %}
+
 
 
                                         <button class="action-btn delete-btn d-flex justify-content-center align-items-center" title="Voir Détails" style="margin-right: 5px;">
@@ -237,21 +250,7 @@
                                         {% endif %}
                                     </p>
 
-                                    <p><strong>Commune :</strong> 
-                                        {% if topo.gid_commune %}
-                                            {{ topo.gid_commune }}
-                                        {% else %}
-                                            <span> </span>
-                                        {% endif %}
-                                    </p>
-
-                                    <p><strong>Quartier :</strong> 
-                                        {% if topo.quartier_origine %}
-                                            {{ topo.quartier_origine }}
-                                        {% else %}
-                                            <span> </span>
-                                        {% endif %}
-                                    </p>
+                                   
 
                                     <hr>
                                     <p><strong>Description :</strong></p>

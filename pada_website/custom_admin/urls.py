@@ -59,12 +59,14 @@ urlpatterns = [
 
     #Toponyme
     path('toponymie/', views.toponyme_list, name='toponymie_list'),
+    path('toponyme_list_sans_desc/', views.toponyme_list_sans_desc, name='topo_list_sans_desc'),
     path('topo_attente_topo/', views.topo_attente_topo, name='topo_attente_topo'),
     path('topo_attente_cs/', views.topo_attente_cs, name='topo_attente_cs'),
     path('topo_attente_coord/', views.topo_attente_coord, name='topo_attente_coord'),
     path('topo_attente_mo/', views.topo_attente_mo, name='topo_attente_mo'),
     path('dashboard_topo/<int:topo_id>/', views.dashboard_topo, name='dashboard_topo'),
     path('toponymie/ajouter_nouvelle_description/<int:topo_id>/',views.ajouter_nouvelle_description,name='ajouter_nouvelle_description'),
+    path('toponymie/edit_toponyme/<int:topo_id>/',views.edit_toponyme,name='edit_toponyme'),
 
     # CS Toponyme
     path("valider_cs/<int:topo_id>/", views.valider_cs, name="valider_cs"),

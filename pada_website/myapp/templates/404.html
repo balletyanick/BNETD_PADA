@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+
+    <title>panneautage.bnetd.ci</title>
+
+    <style>
+        /* Reset et base */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        .highlight-text {
+            color: #e65100;
+            font-weight: bold;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff9966, #ff5e62); /* Dégradé Orange */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* La carte centrale */
+        .card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* L'icône ou l'image */
+        .icon-container {
+            font-size: 50px;
+            background-color: #fff3e0; /* Orange très pâle */
+            color: #ff6f00; /* Orange fort */
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+        }
+
+        /* Titre */
+        h1 {
+            color: #e65100; /* Orange foncé */
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        /* Texte explicatif */
+        p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+
+        /* Affichage de l'ID scanné (optionnel mais utile pour le debug) */
+        .badge-id {
+            display: inline-block;
+            background-color: #eee;
+            color: #555;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Bouton d'action */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #ff6f00;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 10px rgba(255, 111, 0, 0.3);
+        }
+
+        .btn:hover {
+            background-color: #e65100;
+            transform: translateY(-2px);
+        }
+
+        /* Animation simple */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+       
+
+        <h1 style="font-size: 35px;"> Panneautage </h1>
+
+        <p>
+            Scannez un<span class="highlight-text"> code QR </span> pour accéder immédiatement à l'intégralité des informations d'une voie.
+        </p>
+
+        
+    </div>
+
+</body>
+</html>

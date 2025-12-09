@@ -237,6 +237,7 @@ class Toponymie(models.Model):
         managed = False
         permissions = [
             ("list_toponyme", "Voir List Toponyme"),
+            ("list_toponyme_sans_desc", "Voir List Toponyme sans description"),
             ("ajouter_description_toponyme", "Ajouter une nouvelle description toponyme"),
             ("voir_dashboard_toponyme", "Voir Dashboard Toponyme"),
             
@@ -253,10 +254,10 @@ class Toponymie(models.Model):
             ("voir_topo_attente_CS", "Voir Toponymie en attente de cs"),
             ("voir_topo_attente_CCA", "Voir Toponymie en attente de CCA"),
             ("voir_topo_attente_mo", "Voir Toponymie en attente de MO"),
-
             ("suggestion_topo_CS", "Ajouter Suggestion TOPO CS"),
             ("suggestion_topo_CCA", "Ajouter Suggestion TOPO CCA"),
             ("suggestion_topo_MO", "Ajouter Suggestion TOPO MO"),
+            ("edit_toponyme", "Modifier un toponyme"),
         ]
 
     def __str__(self):
