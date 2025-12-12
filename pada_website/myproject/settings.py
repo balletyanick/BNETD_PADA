@@ -62,7 +62,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myapp',  # Application personnalisée créée pour le projet
-    'custom_admin',
+    'custom_admin',  # Application admin du projet
+    'street_views',  
 ]
 
 

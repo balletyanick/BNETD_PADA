@@ -1,0 +1,119 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>panneautage.bnetd.ci</title>
+
+    <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.5/proj4.js"></script> 
+    <script src="{% static 'street_views/js/index.js' %}"></script>
+    
+
+    <style>
+        /* Styles de base */
+        body { margin: 0; padding: 0; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; z-index: 1; }
+        
+        /* Style de la fenêtre modale (Viewer 360) */
+        #modal-viewer-window {
+            display: none; /* Caché par défaut */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 1000px;
+            height: 80vh;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            z-index: 1000; /* Assure que la modale est au-dessus de tout */
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        /* En-tête de la fenêtre modale (pour le déplacement) */
+        #modal-header {
+            cursor: move;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Conteneur pour le viewer Pannellum */
+        #pannellum-viewer {
+            width: 100%;
+            height: calc(100% - 40px); /* Hauteur moins l'en-tête/boutons */
+        }
+        
+        /* Boutons de contrôle */
+        #controls {
+            padding: 5px;
+            background-color: #444;
+            color: white;
+            text-align: center;
+        }
+        #controls button {
+            padding: 8px 15px;
+            margin: 0 5px;
+            background-color: #555;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        #controls button:hover {
+            background-color: #777;
+        }
+
+        /* Bouton de fermeture (X) */
+        #close-button {
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        /* Style du marqueur actuel (défini dans JS) */
+        .current-pos-marker div {
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="modal-viewer-window">
+        <div id="modal-header">
+            <span id="current-point-id">Point actuel: N/A</span>
+            <span id="close-button">&times;</span>
+        </div>
+        
+        <div id="pannellum-viewer"></div> 
+        
+        <div id="controls">
+            <button id="backward-button" title="Précédent (Flèche Bas)"> &lt; Précédent </button>
+            <button id="forward-button" title="Suivant (Flèche Haut)"> Suivant &gt; </button>
+            
+            <button id="turn-left-button" title="Rotation Gauche (Flèche Gauche)"> ↶ </button>
+            <button id="turn-right-button" title="Rotation Droite (Flèche Droite)"> ↷ </button>
+        </div>
+    </div>
+
+
+</body>
+</html>

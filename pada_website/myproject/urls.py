@@ -11,6 +11,7 @@ handler404 = 'myapp.views.custom_404'
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('p_bnetd25/', include('custom_admin.urls')),
+    path('street/', include('street_views.urls')),
     path('', include('myapp.urls')),
 ]
    # Erreur 404

@@ -8,8 +8,10 @@
     {% comment %} <script src="https://www.google.com/recaptcha/api.js" async defer></script> {% endcomment %}
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+    
     <title>panneautage.bnetd.ci</title>
 
  
@@ -42,6 +44,29 @@
         padding-top: 70px;
         padding-bottom: 30px;
     }
+
+        #float-street-btn {
+    position: fixed;
+    bottom: 70px;
+    right: 25px;
+    width: 65px;
+    height: 65px;
+    background: #ff6f00;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    text-decoration: none;
+    box-shadow: 0px 6px 15px rgba(0,0,0,0.3);
+    transition: 0.2s;
+}
+
+#float-street-btn:hover {
+    background: #e65100;
+    transform: scale(1.1);
+}
 
     /* Navbar fixe */
     .navbar {
@@ -839,6 +864,8 @@
             width: 100%;
             justify-content: center;
         }
+
+    
     }
     
 
@@ -1113,11 +1140,15 @@
         <!-- Signaler Un Problème -->
         <div id="probleme-container">
          
-            <a href="{% url 'signaler_probleme' voie.clean_qr_code %}" class="btn btn-warning mt-2">
+            <a href="{% url 'signaler_probleme' voie.clean_qr_code %}" target="_blank" class="btn btn-warning mt-2">
                 Signaler un problème
             </a>
         </div>
-        
+
+        {% comment %} <a href="{% url 'street_home' %}" target="_blank" id="float-street-btn">
+            <i class="fa-solid fa-street-view"></i>
+        </a> {% endcomment %}
+
     </div>
 
     <!-- Footer -->
@@ -1137,6 +1168,7 @@
     </footer>
 
     <script>
+
         // Initialisation de la carte
         var x = parseFloat("{{ x|escapejs }}");
         var y = parseFloat("{{ y|escapejs }}");
@@ -1197,6 +1229,23 @@
                 map.addLayer(googleSatellite);
             }
         }
+
+        // NOUVEAU BOUTON - Rediriger vers street views
+        var customButton = L.Control.extend({
+            onAdd: function(map) {
+                var container = L.DomUtil.create('div', 'leaflet-control-custom');
+                var button = L.DomUtil.create('button', '', container);
+                button.innerHTML = ' <i class="fa-solid fa-street-view"></i>'; // Icône 
+                
+                L.DomEvent.on(button, 'click', function(e) {
+                    e.stopPropagation();
+                    window.open('{% url "street_home" %}', '_blank');
+                });
+                
+                return container;
+            }
+        });
+        map.addControl(new customButton({ position: 'bottomleft' }));
 
     // Taille de l'icône CSS
 var iconWidth = 10; // Largeur de l'icône
