@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 import os
 from django.contrib.auth.models import User
+# from django.contrib.gis.db import models as gis_models GDAL
 
 
 class Voie(models.Model):
@@ -274,3 +275,29 @@ class Toponymie(models.Model):
             "retour_toponymie": "Retour à la Toponymie",
         }
         return mapping.get(self.statut, "Aucune modification")
+    
+
+
+
+
+
+class voirie_panneautage(models.Model):
+    # Django gère automatiquement l'id en auto-increment
+    geom = models.TextField(null=True, blank=True)  # SRID 32630 = UTM Zone 30N
+    id_voie = models.BigIntegerField(null=True, blank=True)
+    source = models.CharField(max_length=100, null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+    nom_cnt = models.CharField(max_length=100, null=True, blank=True)
+    localisati = models.CharField(max_length=255, null=True, blank=True)
+    zone = models.BigIntegerField(null=True, blank=True)
+    secteur = models.BigIntegerField(null=True, blank=True)
+    class_pada = models.CharField(max_length=50, null=True, blank=True)
+    type_voie = models.CharField(max_length=254, null=True, blank=True)
+    validé = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "voirie_panneautage"
+        managed = False  # ← Si la table existe déjà dans PostGIS
+
+    def __str__(self):
+        return f"{self.nom_cnt or 'Sans nom'} - Zone {self.zone}"

@@ -16,17 +16,16 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.5/proj4.js"></script> 
-    <script src="{% static 'street_views/js/index.js' %}"></script>
     
 
-    <style>
+    {% comment %} <style>
         /* Styles de base */
         body { margin: 0; padding: 0; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; z-index: 1; }
         
         /* Style de la fenêtre modale (Viewer 360) */
         #modal-viewer-window {
-            display: none; /* Caché par défaut */
+            display: block; /* Caché par défaut */
             position: fixed;
             top: 50%;
             left: 50%;
@@ -56,7 +55,7 @@
         /* Conteneur pour le viewer Pannellum */
         #pannellum-viewer {
             width: 100%;
-            height: calc(100% - 40px); /* Hauteur moins l'en-tête/boutons */
+            height: calc(100% - 90px); /* Hauteur moins l'en-tête/boutons */
         }
         
         /* Boutons de contrôle */
@@ -91,11 +90,131 @@
         .current-pos-marker div {
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
         }
+
+        
+    </style> {% endcomment %}
+
+    <style>
+         body { margin: 0; padding: 0; display: flex; height: 100vh; font-family: sans-serif; }
+        #map { flex-grow: 1; } /* La carte prend tout l'espace */
+        
+        /* Conteneurs Pannellum de base */
+        #image-viewer { 
+            position: relative; 
+            overflow: hidden; 
+            height: 100%; /* Important pour que pannellum-viewer remplisse */
+        }
+        #pannellum-viewer { 
+            width: 100%;
+            height: 100%;
+            transition: none !important; 
+            opacity: 1 !important; 
+        }
+
+        /* --- Styles de la Fenêtre Modale 360° (Draggable, Resizable) --- */
+        #modal-viewer-window {
+            display: none; /* Caché par défaut */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 1000px;
+            height: 80vh;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            z-index: 1000; /* Assure que la modale est au-dessus de tout */
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        /* En-tête pour le déplacement (Draggable) et le bouton de fermeture */
+        #modal-header {
+            cursor: grab;
+            padding: 5px 10px;
+            background: #5A7491;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 30px; /* Hauteur fixe pour l'en-tête */
+        }
+
+        #close-button {
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        /* Conteneur 360° (Pannellum) - prend l'espace restant après l'en-tête */
+        #image-viewer {
+            height: calc(100% - 40px); /* Hauteur totale - hauteur de l'en-tête */
+        }
+        
+        /* --- Styles de l'Indicateur de Chargement (Cercle Transparent) --- */
+        
+        /* @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .pnlm-load-box {
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%);
+            width: 50px !important; 
+            height: 50px !important; 
+            background: #5A7491; 
+            border-radius: 50%; 
+            opacity: 0.55; 
+            border: none !important; 
+            animation: spin 1s linear infinite; 
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4); 
+            z-index: 20; 
+        } */
+
+        .pnlm-load-box {
+    display: none !important;
+    }
+
+
+        /* --- Styles des Boutons de Navigation sur la vue 360° --- */
+        .nav-button {
+            position: absolute; 
+            background: rgba(0, 0, 0, 0.6);
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            cursor: pointer; 
+            font-size: 24px; 
+            z-index: 10;
+            transition: background 0.1s;
+        }
+
+        .nav-button:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Positionnement des 4 boutons */
+        #forward-button { top: 10px; left: 50%; transform: translateX(-50%); } 
+        #backward-button { bottom: 10px; left: 50%; transform: translateX(-50%); } 
+        #turn-left-button { top: 50%; left: 10px; transform: translateY(-50%); } 
+        #turn-right-button { top: 50%; right: 10px; transform: translateY(-50%); } 
+
+        /* --- Styles du Marqueur de Position (Point rouge) --- */
+        .current-pos-marker {
+            background: none !important;
+            border: none !important;
+        }
     </style>
+
 </head>
 <body>
 
-    <div id="map"></div>
+    {% comment %} <div id="map"></div>
 
     <div id="modal-viewer-window">
         <div id="modal-header">
@@ -112,7 +231,29 @@
             <button id="turn-left-button" title="Rotation Gauche (Flèche Gauche)"> ↶ </button>
             <button id="turn-right-button" title="Rotation Droite (Flèche Droite)"> ↷ </button>
         </div>
+    </div> {% endcomment %}
+
+    <div id="map"></div>
+
+    <div id="modal-viewer-window">
+        <div id="modal-header">
+            <span id="current-point-id">Point actuel: N/A</span>
+            <span id="close-button" title="Fermer la vue 360°">×</span>
+        </div>
+        
+        <div id="image-viewer">
+            <div id="pannellum-viewer"></div>
+            
+            <button id="forward-button" class="nav-button" title="Avancer (Flèche Haut)">▲</button>
+            <button id="backward-button" class="nav-button" title="Reculer (Flèche Bas)">▼</button>
+            <button id="turn-left-button" class="nav-button" title="Regarder à gauche (Flèche Gauche)">↰</button>
+            <button id="turn-right-button" class="nav-button" title="Regarder à droite (Flèche Droite)">↱</button>
+        </div>
     </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <script src="{% static 'street_views/js/index.js' %}"></script>
 
 
 </body>

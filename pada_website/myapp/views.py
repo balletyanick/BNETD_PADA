@@ -10,10 +10,35 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .forms import ProblemeForm
 from django.http import JsonResponse
 from myapp.models import Toponymie
+import json
+from django.db import connection
 
 # Page 404
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
+
+
+def voie_geojson(request, voie_id):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT ST_AsGeoJSON(ST_Transform(v.geom, 4326))
+            FROM voirie_panneautage v
+            WHERE v.id_voie = %s
+        """, [voie_id])
+
+        row = cursor.fetchone()
+
+    if not row or not row[0]:
+        return JsonResponse({"error": "Voie non trouvée"}, status=404)
+
+    return JsonResponse({
+        "type": "Feature",
+        "geometry": json.loads(row[0]),
+        "properties": {
+            "name": "voie"
+        }
+    })
+
 
 def home_view(request, qr_code):
 

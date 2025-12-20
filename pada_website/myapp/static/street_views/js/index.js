@@ -1,11 +1,5 @@
 let streetViewData = [];
 
-const Z1_URL = "{% static 'street_views/geojson/Z1.geojson' %}";
-const Z2_URL = "{% static 'street_views/geojson/Z2.geojson' %}";
-const Z3_URL = "{% static 'street_views/geojson/Z3.geojson' %}";
-const Z4_URL = "{% static 'street_views/geojson/Z4.geojson' %}";
-const Z5_URL = "{% static 'street_views/geojson/Z5.geojson' %}";
-
 // Index du point dans le tableau 'streetViewData' qui est actuellement affiché
 let currentIndex = 0;
 // L'objet carte Leaflet
@@ -16,34 +10,27 @@ let currentMarker;
 let pannellumViewer = null;
 
 // --- DÉFINITION DE LA PROJECTION CORRIGÉE (UTM zone 30N vers WGS84) ---
-// Projection d'entrée (EPSG:32630 - WGS 84 / UTM zone 30N)
 const UTM_PROJECTION = "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs";
-// Coordonnées de sortie (EPSG:4326 - WGS84 Lat/Lon)
 const WGS84 = "EPSG:4326";
 
 // Fonction de conversion des coordonnées X/Y (mètres) vers Lat/Lon (degrés)
 function convertCoordinates(x, y) {
     if (typeof proj4 !== 'undefined') {
-        // proj4(source, destination, [x, y]) retourne [lon, lat]
         const [lon, lat] = proj4(UTM_PROJECTION, WGS84, [x, y]);
         return { lat, lon };
     }
     console.error("Proj4js non chargé. La carte ne s'affichera pas correctement.");
     return { lat: 0, lon: 0 };
 }
-// -----------------------------------------------------------------
-
 
 // --- CONFIGURATION : DÉFINITION DES ZONES ET LEURS CHEMINS FIXES ---
-
 const ZONES = [
-    { name: 'Z1', geojson: '/static/street_views/geojson/Z1.geojson', parentFolder: 'http://10.128.3.40/panoramas/Z1/' },
-    { name: 'Z2', geojson: '/static/street_views/geojson/Z2.geojson', parentFolder: 'http://10.128.3.40/panoramas/Z2/' },
-    { name: 'Z3', geojson: '/static/street_views/geojson/Z3.geojson', parentFolder: 'http://10.128.3.40/panoramas/Z3/' },
-    { name: 'Z4', geojson: '/static/street_views/geojson/Z4.geojson', parentFolder: 'http://10.128.3.40/panoramas/Z4/' },
-    { name: 'Z5', geojson: '/static/street_views/geojson/Z5.geojson', parentFolder: 'http://10.128.3.40/panoramas/Z5/' }
+    { name: 'Z1', geojson: '/static/street_views/geojson/Z1.geojson', parentFolder: '/static/views/Z1/panoramas_hd/' },
+    { name: 'Z2', geojson: '/static/street_views/geojson/Z2.geojson', parentFolder: 'http://10.128.3.27/views/Z2/panoramas_hd/' },
+    { name: 'Z3', geojson: '/static/street_views/geojson/Z3.geojson', parentFolder: 'http://10.128.3.27/views/Z3/panoramas_hd/' },
+    { name: 'Z4', geojson: '/static/street_views/geojson/Z4.geojson', parentFolder: 'http://10.128.3.27/views/Z4/panoramas_hd/' },
+    { name: 'Z5', geojson: '/static/street_views/geojson/Z5.geojson', parentFolder: 'http://10.128.3.27/views/Z5/panoramas_hd/' }
 ];
-
 
 // --- ICONE POUR LA POSITION ACTUELLE (Point rouge) ---
 const currentPosIcon = L.divIcon({
@@ -52,22 +39,6 @@ const currentPosIcon = L.divIcon({
     iconSize: [14, 14],
     iconAnchor: [7, 7]
 });
-
-
-// --- FONCTION UTILITAIRE POUR CRÉER LE VIEWER PANNELLUM ---
-function createPannellumViewer(imageURL, initialYaw) {
-    return pannellum.viewer('pannellum-viewer', {
-        "type": "equirectangular",
-        "panorama": imageURL,
-        "yaw": initialYaw,
-        "autoLoad": true,
-        "showZoom": false,
-        "mouseZoom": false,
-        "showLoadin": true,
-        "preview": null
-    });
-}
-
 
 // --- FONCTION DE GESTION DU DÉPLACEMENT DE LA FENÊTRE (Draggable) ---
 function makeDraggable(element, header) {
@@ -109,11 +80,9 @@ function makeDraggable(element, header) {
     }
 }
 
-
 // --- FONCTION D'INITIALISATION DE LA CARTE ---
 function initMap() {
     const firstPoint = streetViewData[0];
-    // Initialisation avec les coordonnées WGS84 converties
     map = L.map('map').setView([firstPoint.lat, firstPoint.lon], 16);
 
     // FOND DE CARTE OSM
@@ -121,77 +90,94 @@ function initMap() {
         attribution: "© OpenStreetMap"
     }).addTo(map);
 
-    // // --- INTÉGRATION DU SERVICE WMS GEOSERVER ---
-    // const WMS_URL = 'http://10.128.3.34:8080/geoserver/panneautage/wms';
-    // const WMS_LAYER_NAME = 'panneautage:FOND_DE_CARTE_CODE_QR'; // Nom du groupe/couche
-
-    // L.tileLayer.wms(WMS_URL, {
-    //     layers: WMS_LAYER_NAME,
-    //     format: 'image/png',
-    //     transparent: true,
-    //     version: '1.1.0',
-    //     tiled: true,
-    //     crs: L.CRS.EPSG4326,
-    //     attribution: '© Service Géomatique Interne - GeoServer'
-    // }).addTo(map);
-    // // ---------------------------------------------
-
-
-
-    //AFFICHAGE DES POINTS
+    // AFFICHAGE DES POINTS
     streetViewData.forEach((point, index) => {
-        // Utiliser L.circleMarker pour un petit point propre et cliquable
         L.circleMarker([point.lat, point.lon], {
-            radius: 3,          // Encore plus petit
-            color: '#000000',   // Noir pour le contour
-            fillColor: '#FFFFFF', // Remplissage Blanc
-            fillOpacity: 0.5,    // Remplissage semi-transparent
-            weight: 1           // Épaisseur du contour
+            radius: 3,
+            color: '#000000',
+            fillColor: '#FFFFFF',
+            fillOpacity: 0.5,
+            weight: 1
         })
-            .on('click', function () {
-                // Au clic, charge le panorama correspondant
-                loadPoint(index);
-            })
-            .addTo(map);
+        .on('click', function () {
+            loadPoint(index);
+        })
+        .addTo(map);
     });
-   
 }
-
-
 
 // --- FONCTION DE CHARGEMENT D'UN POINT (Ouvre/Met à Jour la Fenêtre Modale) ---
 function loadPoint(index) {
     if (index < 0 || index >= streetViewData.length) {
+        console.warn(`❌ Index invalide: ${index} (min: 0, max: ${streetViewData.length - 1})`);
         return;
     }
 
     currentIndex = index;
     const point = streetViewData[currentIndex];
 
+    console.log(`📍 Chargement du point ${index}:`, point);
+
     // Afficher la fenêtre modale et mettre à jour le titre
     document.getElementById('modal-viewer-window').style.display = 'block';
     document.getElementById('current-point-id').textContent = `Point actuel: ${point.id} (Zone ${point.zoneName})`;
 
-    // Le chemin complet utilise maintenant le chemin relatif du serveur 
+    // Construction de l'URL complète de l'image
     const imageURL = point.imagePathBase + point.id;
-    const initialYaw = point.heading || 0;
+    console.log(`🖼️ URL de l'image: ${imageURL}`);
 
-    // Création ou rechargement du viewer.
-    if (pannellumViewer) {
-        try {
-            pannellumViewer.loadScene({
-                "type": "equirectangular",
-                "panorama": imageURL,
-                "yaw": initialYaw,
-                "autoLoad": true
-            });
-        } catch (e) {
-            pannellumViewer.destroy();
-            pannellumViewer = createPannellumViewer(imageURL, initialYaw);
-        }
-    } else {
-        pannellumViewer = createPannellumViewer(imageURL, initialYaw);
-    }
+    // ... début de la fonction loadPoint ...
+
+// Au lieu de mettre le heading dans yaw, on le garde pour le Nord
+const carHeading = point.heading || 0;
+const carPitch = point.pitch || 0;
+const carRoll = point.roll || 0;
+
+console.log(`🧭 Données d'orientation -> Heading: ${carHeading}, Pitch: ${carPitch}, Roll: ${carRoll}`);
+
+// CRÉATION OU RECHARGEMENT DU VIEWER
+// if (pannellumViewer) {
+//     pannellumViewer.destroy();
+//     pannellumViewer = null;
+//     const viewerDiv = document.getElementById('pannellum-viewer');
+//     if (viewerDiv) viewerDiv.innerHTML = '';
+// }
+
+pannellumViewer = pannellum.viewer('pannellum-viewer', {
+    "type": "equirectangular",
+    "panorama": imageURL,
+    
+    /* --- CORRECTION DE L'ORIENTATION --- */
+    
+    // yaw: 0 signifie "Regarde le centre de l'image" (donc la route devant)
+    "yaw": 0, 
+    
+    // pitch: 0 signifie "Regarde l'horizon", pas le ciel ni le sol
+    "pitch": 0,
+
+    // northOffset: Indique à Pannellum où se trouve le Nord par rapport au centre de l'image.
+    // Cela permet d'avoir la boussole juste, tout en regardant la route.
+    "northOffset": carHeading,
+
+    /* --- CORRECTION DE L'HORIZON (ANTI-PENCHÉ) --- */
+    
+    
+    
+    // horizonPitch: Compense la montée/descente de la route
+    "horizonPitch": carPitch,
+
+    /* --- OPTIONS STANDARDS --- */
+    "autoLoad": true,
+    "showZoom": false,
+    "mouseZoom": false,
+    "showLoading": true,
+    "compass": true, // Affiche la boussole pour vérifier le Nord
+    "preview": null
+});
+
+// ... suite de la fonction ...
+
+    console.log('✅ Viewer créé avec succès');
 
     // --- AJOUT ET MISE À JOUR DU MARQUEUR DE POSITION ACTUELLE ---
     if (currentMarker) {
@@ -206,63 +192,67 @@ function loadPoint(index) {
     map.setView([point.lat, point.lon], map.getZoom());
 }
 
-
-
 // --- FONCTION DE NAVIGATION (Séquentielle) ---
 function navigate(direction) {
     const newIndex = currentIndex + direction;
+    console.log(`🚀 Navigation: currentIndex=${currentIndex}, direction=${direction}, newIndex=${newIndex}`);
     loadPoint(newIndex);
 }
-
 
 // --- FONCTION : Rotation de la vue à 360° ---
 function turnView(degrees) {
     if (pannellumViewer) {
         const currentYaw = pannellumViewer.getYaw();
         const newYaw = currentYaw + degrees;
-
+        console.log(`🔄 Rotation: ${currentYaw}° → ${newYaw}°`);
         pannellumViewer.setYaw(newYaw, 500, 'easeInOutQuad');
     }
 }
 
-
 // --- FONCTION PRINCIPALE : DÉMARRAGE DE L'APPLICATION (Charge les 5 GeoJSON) ---
 async function main() {
     try {
+        console.log('🚀 Démarrage de l\'application...');
+
         const allDataPromises = ZONES.map(async (zone) => {
+            console.log(`📥 Chargement de ${zone.name}...`);
             const response = await fetch(zone.geojson);
 
             if (!response.ok) {
-                console.error(`Impossible de charger ${zone.geojson}: ${response.statusText}`);
+                console.error(`❌ Impossible de charger ${zone.geojson}: ${response.statusText}`);
                 return [];
             }
 
             const data = await response.json();
+            console.log(`✅ ${zone.name} chargé: ${data.features.length} points`);
 
-            // Le nom de la colonne corrigé : 'CHEMIN'
             const SUB_FOLDER_PROPERTY_NAME = 'CHEMIN';
 
             return data.features.map((feature, i) => {
                 const subFolder = feature.properties[SUB_FOLDER_PROPERTY_NAME];
 
                 if (!subFolder) {
+                    console.warn(`⚠️ Pas de CHEMIN pour la feature ${i} dans ${zone.name}`);
                     return null;
                 }
 
-                // -------------------------------------------------------------
-                // Conversion des coordonnées UTM (feature.geometry.coordinates)
-                // -------------------------------------------------------------
+                // Conversion des coordonnées UTM vers WGS84
                 const utmX = feature.geometry.coordinates[0];
                 const utmY = feature.geometry.coordinates[1];
-                const { lat, lon } = convertCoordinates(utmX, utmY); // Conversion ici
+                const { lat, lon } = convertCoordinates(utmX, utmY);
 
                 const fullImagePathBase = zone.parentFolder + subFolder;
 
                 return {
                     id: feature.properties.nom_image,
-                    lat: lat, // Latitude WGS84 convertie
-                    lon: lon, // Longitude WGS84 convertie
-                    heading: feature.properties.HEADING || 0,
+                    lat: lat,
+                    lon: lon,
+                    // HEADING est la direction de la voiture par rapport au Nord
+                    heading: feature.properties.HEADING || 0, 
+                    // PITCH : inclinaison avant/arrière (montée/descente)
+                    pitch: feature.properties.PITCH || 0,
+                    // ROLL : inclinaison gauche/droite (horizon penché)
+                    roll: feature.properties.ROLL || 0,
                     zoneName: zone.name,
                     imagePathBase: fullImagePathBase
                 };
@@ -272,12 +262,17 @@ async function main() {
         const results = await Promise.all(allDataPromises);
         streetViewData = results.flat();
 
+        // IMPORTANT: Réindexer tous les points après le flat()
         streetViewData.forEach((point, i) => point.index = i);
+
+        console.log(`✅ Total de points chargés: ${streetViewData.length}`);
+        console.log('📋 Premier point:', streetViewData[0]);
 
         if (streetViewData.length > 0) {
             initMap();
         } else {
             alert("Aucune donnée de panorama n'a été chargée. Vérifiez les fichiers GeoJSON et les chemins.");
+            return;
         }
 
         // --- GESTION DE LA FENÊTRE MODALE (Écouteurs d'événements) ---
@@ -285,30 +280,85 @@ async function main() {
         const modalHeader = document.getElementById('modal-header');
         const closeBtn = document.getElementById('close-button');
 
+        if (!modalWindow || !modalHeader || !closeBtn) {
+            console.error('❌ Éléments de la modale non trouvés dans le DOM');
+            return;
+        }
+
         makeDraggable(modalWindow, modalHeader);
 
         closeBtn.addEventListener('click', () => {
+            console.log('🔴 Fermeture de la modale');
             modalWindow.style.display = 'none';
         });
 
-        document.getElementById('forward-button').addEventListener('click', () => navigate(1));
-        document.getElementById('backward-button').addEventListener('click', () => navigate(-1));
-        document.getElementById('turn-left-button').addEventListener('click', () => turnView(-30));
-        document.getElementById('turn-right-button').addEventListener('click', () => turnView(30));
+        // BOUTONS DE NAVIGATION
+        const forwardBtn = document.getElementById('forward-button');
+        const backwardBtn = document.getElementById('backward-button');
+        const turnLeftBtn = document.getElementById('turn-left-button');
+        const turnRightBtn = document.getElementById('turn-right-button');
 
+        if (forwardBtn) {
+            forwardBtn.addEventListener('click', () => {
+                console.log('⬆️ Bouton Avancer cliqué');
+                navigate(1);
+            });
+        } else {
+            console.error('❌ forward-button non trouvé');
+        }
+
+        if (backwardBtn) {
+            backwardBtn.addEventListener('click', () => {
+                console.log('⬇️ Bouton Reculer cliqué');
+                navigate(-1);
+            });
+        } else {
+            console.error('❌ backward-button non trouvé');
+        }
+
+        if (turnLeftBtn) {
+            turnLeftBtn.addEventListener('click', () => {
+                console.log('⬅️ Bouton Gauche cliqué');
+                turnView(-30);
+            });
+        } else {
+            console.error('❌ turn-left-button non trouvé');
+        }
+
+        if (turnRightBtn) {
+            turnRightBtn.addEventListener('click', () => {
+                console.log('➡️ Bouton Droite cliqué');
+                turnView(30);
+            });
+        } else {
+            console.error('❌ turn-right-button non trouvé');
+        }
+
+        // RACCOURCIS CLAVIER
         window.addEventListener('keydown', (event) => {
             if (modalWindow.style.display === 'block') {
+                console.log(`⌨️ Touche pressée: ${event.key}`);
                 switch (event.key) {
-                    case 'ArrowUp': navigate(1); break;
-                    case 'ArrowDown': navigate(-1); break;
-                    case 'ArrowLeft': turnView(-30); break;
-                    case 'ArrowRight': turnView(30); break;
+                    case 'ArrowUp':
+                        navigate(1);
+                        break;
+                    case 'ArrowDown':
+                        navigate(-1);
+                        break;
+                    case 'ArrowLeft':
+                        turnView(-30);
+                        break;
+                    case 'ArrowRight':
+                        turnView(30);
+                        break;
                 }
             }
         });
 
+        console.log('✅ Application initialisée avec succès');
+
     } catch (error) {
-        console.error("Échec de l'initialisation de l'application:", error);
+        console.error("❌ Échec de l'initialisation de l'application:", error);
         alert("Impossible de charger les données ou le format GeoJSON est inattendu.");
     }
 }

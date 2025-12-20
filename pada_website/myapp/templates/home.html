@@ -632,11 +632,18 @@
         width: 25px !important;
     }
 
-    .leaflet-interactive {
-        stroke: var(--marker-color);
-        fill: var(--marker-color);
-        fill-opacity: 0.1;
-    }
+
+  /* Style de base de la voie avec effet de profondeur */
+.leaflet-interactive.road-highlight {
+    stroke: #0fb117ff !important;        /* Orange vif plus moderne */
+    stroke-width: 6 !important;        /* Plus épais pour mieux se voir */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-opacity: 1;
+    filter: drop-shadow(0 2px 4px rgba(225, 108, 19, 0.4));  /* Ombre portée */
+    transition: all 5s ease;         /* Animation fluide */
+}
+
 
     /* Texte "Voir plus" */
     .see-more {
@@ -1181,6 +1188,25 @@
         }
 
         var map = L.map('map').setView([y, x], staticZoom);
+
+        // Charger et afficher la voie associée au panneau
+        fetch("/voie/{{ voie.id_voies }}/geojson/")
+            .then(response => response.json())
+                .then(data => {
+                    const voieLayer = L.geoJSON(data, {
+
+                        className: 'road-highlight',
+                       
+                    }).addTo(map);
+
+                    // Centrer la carte sur la voie
+                     // map.fitBounds(voieLayer.getBounds(), {
+                         // padding: [20, 20]
+                      //});
+            })
+        .catch(err => {
+            console.error("Erreur chargement voie :", err);
+        });
 
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',

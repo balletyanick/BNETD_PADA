@@ -9,6 +9,7 @@ urlpatterns = [
     # Nouvelle route pour "Signaler un problème"
     path('<str:qr_code>/signaler-probleme/', views.signaler_probleme, name='signaler_probleme'),
 
+    path( 'voie/<int:voie_id>/geojson/', views.voie_geojson,name='voie_geojson'),
 
 
 

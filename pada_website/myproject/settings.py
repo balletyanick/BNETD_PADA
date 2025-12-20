@@ -1,6 +1,10 @@
 from pathlib import Path
 import os
 
+# GDAL_LIBRARY_PATH = r"C:\Users\Yanick\Documents\BNETD\Projets\PADA\.venv\Lib\site-packages\osgeo\gdal310.dll" pour linux
+
+# GDAL_LIBRARY_PATH = r"C:\Program Files\GDAL\gdal.dll" GDAL pour windows 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -83,6 +87,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.contrib.gis',   # obligatoire pour utiliser GeometryField, LineStringField...
 ]
 
 ROOT_URLCONF = 'myproject.urls'
