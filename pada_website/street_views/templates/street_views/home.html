@@ -18,82 +18,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.5/proj4.js"></script> 
     
 
-    {% comment %} <style>
-        /* Styles de base */
-        body { margin: 0; padding: 0; font-family: sans-serif; }
-        #map { height: 100vh; width: 100%; z-index: 1; }
-        
-        /* Style de la fenêtre modale (Viewer 360) */
-        #modal-viewer-window {
-            display: block; /* Caché par défaut */
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            max-width: 1000px;
-            height: 80vh;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            z-index: 1000; /* Assure que la modale est au-dessus de tout */
-            overflow: hidden;
-            border: 2px solid #333;
-        }
-
-        /* En-tête de la fenêtre modale (pour le déplacement) */
-        #modal-header {
-            cursor: move;
-            padding: 10px;
-            background-color: #333;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Conteneur pour le viewer Pannellum */
-        #pannellum-viewer {
-            width: 100%;
-            height: calc(100% - 90px); /* Hauteur moins l'en-tête/boutons */
-        }
-        
-        /* Boutons de contrôle */
-        #controls {
-            padding: 5px;
-            background-color: #444;
-            color: white;
-            text-align: center;
-        }
-        #controls button {
-            padding: 8px 15px;
-            margin: 0 5px;
-            background-color: #555;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        #controls button:hover {
-            background-color: #777;
-        }
-
-        /* Bouton de fermeture (X) */
-        #close-button {
-            cursor: pointer;
-            font-size: 24px;
-            font-weight: bold;
-            line-height: 1;
-        }
-        
-        /* Style du marqueur actuel (défini dans JS) */
-        .current-pos-marker div {
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-        }
-
-        
-    </style> {% endcomment %}
-
     <style>
          body { margin: 0; padding: 0; display: flex; height: 100vh; font-family: sans-serif; }
         #map { flex-grow: 1; } /* La carte prend tout l'espace */
@@ -113,7 +37,7 @@
 
         /* --- Styles de la Fenêtre Modale 360° (Draggable, Resizable) --- */
         #modal-viewer-window {
-            display: none; /* Caché par défaut */
+            display: none; 
             position: fixed;
             top: 50%;
             left: 50%;
@@ -124,16 +48,16 @@
             background-color: white;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             border-radius: 8px;
-            z-index: 1000; /* Assure que la modale est au-dessus de tout */
+            z-index: 1000; 
             overflow: hidden;
-            border: 2px solid #333;
+            border: 2px solid #f08f30;
         }
 
-        /* En-tête pour le déplacement (Draggable) et le bouton de fermeture */
+        /* En-tête pour le déplacement*/
         #modal-header {
             cursor: grab;
             padding: 5px 10px;
-            background: #5A7491;
+            background: #f08f30;
             color: white;
             display: flex;
             justify-content: space-between;
@@ -213,25 +137,6 @@
 
 </head>
 <body>
-
-    {% comment %} <div id="map"></div>
-
-    <div id="modal-viewer-window">
-        <div id="modal-header">
-            <span id="current-point-id">Point actuel: N/A</span>
-            <span id="close-button">&times;</span>
-        </div>
-        
-        <div id="pannellum-viewer"></div> 
-        
-        <div id="controls">
-            <button id="backward-button" title="Précédent (Flèche Bas)"> &lt; Précédent </button>
-            <button id="forward-button" title="Suivant (Flèche Haut)"> Suivant &gt; </button>
-            
-            <button id="turn-left-button" title="Rotation Gauche (Flèche Gauche)"> ↶ </button>
-            <button id="turn-right-button" title="Rotation Droite (Flèche Droite)"> ↷ </button>
-        </div>
-    </div> {% endcomment %}
 
     <div id="map"></div>
 

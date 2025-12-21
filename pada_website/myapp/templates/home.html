@@ -635,7 +635,7 @@
 
   /* Style de base de la voie avec effet de profondeur */
 .leaflet-interactive.road-highlight {
-    stroke: #0fb117ff !important;        /* Orange vif plus moderne */
+    stroke: #ecf019ff !important;        /* Orange vif plus moderne */
     stroke-width: 6 !important;        /* Plus épais pour mieux se voir */
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -1155,6 +1155,12 @@
         {% comment %} <a href="{% url 'street_home' %}" target="_blank" id="float-street-btn">
             <i class="fa-solid fa-street-view"></i>
         </a> {% endcomment %}
+{% comment %} 
+        <div id="geo-data" 
+            data-x="{{ x|stringformat:'f'|default:'' }}" 
+            data-y="{{ y|stringformat:'f'|default:'' }}" 
+            style="display:none;">
+        </div> {% endcomment %}
 
     </div>
 
@@ -1261,11 +1267,28 @@
             onAdd: function(map) {
                 var container = L.DomUtil.create('div', 'leaflet-control-custom');
                 var button = L.DomUtil.create('button', '', container);
-                button.innerHTML = ' <i class="fa-solid fa-street-view"></i>'; // Icône 
+                button.innerHTML = '<i class="fa-solid fa-street-view"></i>';
                 
                 L.DomEvent.on(button, 'click', function(e) {
                     e.stopPropagation();
-                    window.open('{% url "street_home" %}', '_blank');
+
+                    // On utilise les variables globales x et y définies au début du script
+                    // x et y ici correspondent aux valeurs Django {{ x }} et {{ y }}
+                    if (typeof x !== 'undefined' && typeof y !== 'undefined') {
+                        
+                        // Préparation des paramètres (formatage propre)
+                        var targetX = x.toString().replace(',', '.');
+                        var targetY = y.toString().replace(',', '.');
+
+                        console.log("Redirection vers Street View avec :", targetX, targetY);
+
+                        var baseUrl = '{% url "street_home" %}'; 
+                        var finalUrl = baseUrl + '?x=' + targetX + '&y=' + targetY;
+                        
+                        window.open(finalUrl, '_blank');
+                    } else {
+                        alert("Erreur : Coordonnées introuvables.");
+                    }
                 });
                 
                 return container;

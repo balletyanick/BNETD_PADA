@@ -99,9 +99,9 @@ function initMap() {
             fillOpacity: 0.5,
             weight: 1
         })
-        .on('click', function () {
-            loadPoint(index);
-        })
+        // .on('click', function () {
+        //     loadPoint(index);
+        // })
         .addTo(map);
     });
 }
@@ -109,14 +109,14 @@ function initMap() {
 // --- FONCTION DE CHARGEMENT D'UN POINT (Ouvre/Met à Jour la Fenêtre Modale) ---
 function loadPoint(index) {
     if (index < 0 || index >= streetViewData.length) {
-        console.warn(`❌ Index invalide: ${index} (min: 0, max: ${streetViewData.length - 1})`);
+        console.warn(`Index invalide: ${index} (min: 0, max: ${streetViewData.length - 1})`);
         return;
     }
 
     currentIndex = index;
     const point = streetViewData[currentIndex];
 
-    console.log(`📍 Chargement du point ${index}:`, point);
+    // console.log(`Chargement du point ${index}:`, point);
 
     // Afficher la fenêtre modale et mettre à jour le titre
     document.getElementById('modal-viewer-window').style.display = 'block';
@@ -124,30 +124,22 @@ function loadPoint(index) {
 
     // Construction de l'URL complète de l'image
     const imageURL = point.imagePathBase + point.id;
-    console.log(`🖼️ URL de l'image: ${imageURL}`);
+    // console.log(`URL de l'image: ${imageURL}`);
+
 
     // ... début de la fonction loadPoint ...
+    // Au lieu de mettre le heading dans yaw, on le garde pour le Nord
+    const carHeading = point.heading || 0;
+    const carPitch = point.pitch || 0;
+    const carRoll = point.roll || 0;
 
-// Au lieu de mettre le heading dans yaw, on le garde pour le Nord
-const carHeading = point.heading || 0;
-const carPitch = point.pitch || 0;
-const carRoll = point.roll || 0;
+    // console.log(`Données d'orientation -> Heading: ${carHeading}, Pitch: ${carPitch}, Roll: ${carRoll}`);
 
-console.log(`🧭 Données d'orientation -> Heading: ${carHeading}, Pitch: ${carPitch}, Roll: ${carRoll}`);
 
-// CRÉATION OU RECHARGEMENT DU VIEWER
-// if (pannellumViewer) {
-//     pannellumViewer.destroy();
-//     pannellumViewer = null;
-//     const viewerDiv = document.getElementById('pannellum-viewer');
-//     if (viewerDiv) viewerDiv.innerHTML = '';
-// }
 
 pannellumViewer = pannellum.viewer('pannellum-viewer', {
     "type": "equirectangular",
     "panorama": imageURL,
-    
-    /* --- CORRECTION DE L'ORIENTATION --- */
     
     // yaw: 0 signifie "Regarde le centre de l'image" (donc la route devant)
     "yaw": 0, 
@@ -159,10 +151,6 @@ pannellumViewer = pannellum.viewer('pannellum-viewer', {
     // Cela permet d'avoir la boussole juste, tout en regardant la route.
     "northOffset": carHeading,
 
-    /* --- CORRECTION DE L'HORIZON (ANTI-PENCHÉ) --- */
-    
-    
-    
     // horizonPitch: Compense la montée/descente de la route
     "horizonPitch": carPitch,
 
@@ -175,11 +163,8 @@ pannellumViewer = pannellum.viewer('pannellum-viewer', {
     "preview": null
 });
 
-// ... suite de la fonction ...
+    // console.log('Viewer créé avec succès');
 
-    console.log('✅ Viewer créé avec succès');
-
-    // --- AJOUT ET MISE À JOUR DU MARQUEUR DE POSITION ACTUELLE ---
     if (currentMarker) {
         map.removeLayer(currentMarker);
     }
@@ -195,7 +180,7 @@ pannellumViewer = pannellum.viewer('pannellum-viewer', {
 // --- FONCTION DE NAVIGATION (Séquentielle) ---
 function navigate(direction) {
     const newIndex = currentIndex + direction;
-    console.log(`🚀 Navigation: currentIndex=${currentIndex}, direction=${direction}, newIndex=${newIndex}`);
+    // console.log(`Navigation: currentIndex=${currentIndex}, direction=${direction}, newIndex=${newIndex}`);
     loadPoint(newIndex);
 }
 
@@ -204,27 +189,45 @@ function turnView(degrees) {
     if (pannellumViewer) {
         const currentYaw = pannellumViewer.getYaw();
         const newYaw = currentYaw + degrees;
-        console.log(`🔄 Rotation: ${currentYaw}° → ${newYaw}°`);
+        // console.log(`Rotation: ${currentYaw}° → ${newYaw}°`);
         pannellumViewer.setYaw(newYaw, 500, 'easeInOutQuad');
     }
 }
 
-// --- FONCTION PRINCIPALE : DÉMARRAGE DE L'APPLICATION (Charge les 5 GeoJSON) ---
+// --- FONCTION POUR TROUVER LE POINT LE PLUS PROCHE ---
+function findClosestPointIndex(targetLat, targetLon) {
+    let minDistance = Infinity;
+    let closestIndex = 0;
+
+    streetViewData.forEach((point, index) => {
+        // Formule de distance simple (Pythagore) suffisante pour des points proches
+        const dist = Math.sqrt(Math.pow(point.lat - targetLat, 2) + Math.pow(point.lon - targetLon, 2));
+        
+        if (dist < minDistance) {
+            minDistance = dist;
+            closestIndex = index;
+        }
+    });
+
+    return closestIndex;
+}
+
+//FONCTION PRINCIPALE : DÉMARRAGE DE L'APPLICATION (Charge les 5 GeoJSON) ---
 async function main() {
     try {
-        console.log('🚀 Démarrage de l\'application...');
+        // console.log('Démarrage de l\'application...');
 
         const allDataPromises = ZONES.map(async (zone) => {
-            console.log(`📥 Chargement de ${zone.name}...`);
+            // console.log(`Chargement de ${zone.name}...`);
             const response = await fetch(zone.geojson);
 
             if (!response.ok) {
-                console.error(`❌ Impossible de charger ${zone.geojson}: ${response.statusText}`);
+                // console.error(`Impossible de charger ${zone.geojson}: ${response.statusText}`);
                 return [];
             }
 
             const data = await response.json();
-            console.log(`✅ ${zone.name} chargé: ${data.features.length} points`);
+            // console.log(`${zone.name} chargé: ${data.features.length} points`);
 
             const SUB_FOLDER_PROPERTY_NAME = 'CHEMIN';
 
@@ -232,7 +235,7 @@ async function main() {
                 const subFolder = feature.properties[SUB_FOLDER_PROPERTY_NAME];
 
                 if (!subFolder) {
-                    console.warn(`⚠️ Pas de CHEMIN pour la feature ${i} dans ${zone.name}`);
+                    console.warn(`Pas de CHEMIN pour la feature ${i} dans ${zone.name}`);
                     return null;
                 }
 
@@ -262,16 +265,54 @@ async function main() {
         const results = await Promise.all(allDataPromises);
         streetViewData = results.flat();
 
-        // IMPORTANT: Réindexer tous les points après le flat()
         streetViewData.forEach((point, i) => point.index = i);
 
-        console.log(`✅ Total de points chargés: ${streetViewData.length}`);
-        console.log('📋 Premier point:', streetViewData[0]);
+        // console.log(`Total de points chargés: ${streetViewData.length}`);
+        // console.log('Premier point:', streetViewData[0]);
 
-        if (streetViewData.length > 0) {
+       if (streetViewData.length > 0) {
             initMap();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramX = urlParams.get('x');
+            const paramY = urlParams.get('y');
+
+            if (paramX && paramY && paramX !== "None") {
+                const valX = parseFloat(paramX);
+                const valY = parseFloat(paramY);
+
+                let targetLat, targetLon;
+
+                // DETECTION : Si valX est entre -180 et 180, ce sont des DEGRÉS (WGS84)
+                if (Math.abs(valX) <= 180) {
+                    console.log("Mode Degrés détecté (GPS)");
+                    targetLon = valX;
+                    targetLat = valY;
+                } else {
+                    // Sinon, on considère que ce sont des MÈTRES (UTM) et on convertit
+                    console.log("Mode Mètres détecté (UTM)");
+                    const converted = convertCoordinates(valX, valY);
+                    targetLat = converted.lat;
+                    targetLon = converted.lon;
+                }
+
+                // console.log(`Recherche du point le plus proche de : Lat ${targetLat}, Lon ${targetLon}`);
+
+                // Trouver l'index dans le tableau global streetViewData
+                const closestIndex = findClosestPointIndex(targetLat, targetLon);
+                
+                if (closestIndex !== -1) {
+                    // console.log(`Trouvé ! Zone: ${streetViewData[closestIndex].zoneName}, Index: ${closestIndex}`);
+                    loadPoint(closestIndex);
+                    
+                    // Optionnel : Forcer la carte à se centrer
+                    if (map) {
+                        map.setView([targetLat, targetLon], 18);
+                    }
+                }
+            }
         } else {
-            alert("Aucune donnée de panorama n'a été chargée. Vérifiez les fichiers GeoJSON et les chemins.");
+            alert("Aucune donnée de panorama n'a été chargée.");
             return;
         }
 
@@ -281,14 +322,14 @@ async function main() {
         const closeBtn = document.getElementById('close-button');
 
         if (!modalWindow || !modalHeader || !closeBtn) {
-            console.error('❌ Éléments de la modale non trouvés dans le DOM');
+            console.error('Éléments de la modale non trouvés dans le DOM');
             return;
         }
 
         makeDraggable(modalWindow, modalHeader);
 
         closeBtn.addEventListener('click', () => {
-            console.log('🔴 Fermeture de la modale');
+            // console.log('Fermeture de la modale');
             modalWindow.style.display = 'none';
         });
 
@@ -304,34 +345,34 @@ async function main() {
                 navigate(1);
             });
         } else {
-            console.error('❌ forward-button non trouvé');
+            console.error('forward-button non trouvé');
         }
 
         if (backwardBtn) {
             backwardBtn.addEventListener('click', () => {
-                console.log('⬇️ Bouton Reculer cliqué');
+                // console.log('Bouton Reculer cliqué');
                 navigate(-1);
             });
         } else {
-            console.error('❌ backward-button non trouvé');
+            console.error('backward-button non trouvé');
         }
 
         if (turnLeftBtn) {
             turnLeftBtn.addEventListener('click', () => {
-                console.log('⬅️ Bouton Gauche cliqué');
+                // console.log('Bouton Gauche cliqué');
                 turnView(-30);
             });
         } else {
-            console.error('❌ turn-left-button non trouvé');
+            console.error('turn-left-button non trouvé');
         }
 
         if (turnRightBtn) {
             turnRightBtn.addEventListener('click', () => {
-                console.log('➡️ Bouton Droite cliqué');
+                // console.log('➡️ Bouton Droite cliqué');
                 turnView(30);
             });
         } else {
-            console.error('❌ turn-right-button non trouvé');
+            console.error('turn-right-button non trouvé');
         }
 
         // RACCOURCIS CLAVIER
@@ -355,10 +396,10 @@ async function main() {
             }
         });
 
-        console.log('✅ Application initialisée avec succès');
+        // console.log('Application initialisée avec succès');
 
     } catch (error) {
-        console.error("❌ Échec de l'initialisation de l'application:", error);
+        // console.error("Échec de l'initialisation de l'application:", error);
         alert("Impossible de charger les données ou le format GeoJSON est inattendu.");
     }
 }
