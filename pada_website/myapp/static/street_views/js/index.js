@@ -94,7 +94,7 @@ function initMap() {
     streetViewData.forEach((point, index) => {
         L.circleMarker([point.lat, point.lon], {
             radius: 3,
-            color: '#000000',
+            color: '#0b8bbdff',
             fillColor: '#FFFFFF',
             fillOpacity: 0.5,
             weight: 1
