@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="icon" type="image/jpeg" href="{% static 'image/icon_logo.png' %}">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
     
     <title>panneautage.bnetd.ci</title>
 
@@ -26,6 +30,12 @@
         --icon-color: #0F8342;
         --marker-color: #ff0000;
     }
+
+    /** Enlever le chargement automatique  */
+    .pnlm-load-box {
+        display: none !important;
+    }
+
 
     * {
         box-sizing: border-box;
@@ -976,6 +986,23 @@
 </head>
 <body>
 
+    <div id="modal-viewer-window" style="display:none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); width: 90%; max-width: 800px; height: 500px; background: white; z-index: 9999; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5); overflow: hidden;">
+        
+        <div id="modal-header" style="padding: 10px; background: #f08f30; color: white; cursor: move; display: flex; justify-content: space-between; align-items: center;">
+            <span id="current-point-id" style="font-weight: bold;">Chargement...</span>
+            <button id="close-button" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+
+        <div id="pannellum-viewer" style="width: 100%; height: calc(100% - 100px);"></div>
+
+        <div style="height: 60px; background: #00002e; display: flex; justify-content: center; align-items: center; gap: 15px;">
+            <button id="turn-left-button" style="padding: 5px 10px;"> ↰ </button>
+            <button id="backward-button" style="padding: 5px 10px;"> ▼ </button>
+            <button id="forward-button" style="padding: 5px 10px;"> ▲ </button>
+            <button id="turn-right-button" style="padding: 5px 10px;"> ↱ </button>
+        </div>
+    </div>
+
     {% if publicite_globale %}
         <div class="pub-overlay" id="pubOverlay">
             <div class="pub-container">
@@ -992,13 +1019,13 @@
 
                 <!-- Contenu -->
                 <div class="pub-content">
-                    <!-- Compteur (optionnel) -->
+                    <!-- Compteur-->
                     <div class="pub-timer" id="pubTimer" style="display: none;">
                         <i class="ri-time-line"></i>
                         <span id="timerCount">5</span>s
                     </div>
 
-                    <!-- Média (Image ou Vidéo) -->
+                    <!-- Média-->
                     <div class="pub-media">
                         {% if publicite_globale.video %}
                             <video id="pubVideo" controls autoplay muted playsinline>
@@ -1152,15 +1179,6 @@
             </a>
         </div>
 
-        {% comment %} <a href="{% url 'street_home' %}" target="_blank" id="float-street-btn">
-            <i class="fa-solid fa-street-view"></i>
-        </a> {% endcomment %}
-{% comment %} 
-        <div id="geo-data" 
-            data-x="{{ x|stringformat:'f'|default:'' }}" 
-            data-y="{{ y|stringformat:'f'|default:'' }}" 
-            style="display:none;">
-        </div> {% endcomment %}
 
     </div>
 
@@ -1180,88 +1198,8 @@
         </div>
     </footer>
 
+    {% comment %} 
     <script>
-
-        // Initialisation de la carte
-        var x = parseFloat("{{ x|escapejs }}");
-        var y = parseFloat("{{ y|escapejs }}");
-        var staticZoom = 18;
-
-        if (isNaN(x) || isNaN(y)) {
-            console.error("Les coordonnées sont invalides :", x, y);
-            x = 5.316667;
-            y = -4.033333;
-        }
-
-        var map = L.map('map').setView([y, x], staticZoom);
-
-        // Charger et afficher la voie associée au panneau
-        fetch("/voie/{{ voie.id_voies }}/geojson/")
-            .then(response => response.json())
-                .then(data => {
-                    const voieLayer = L.geoJSON(data, {
-
-                        className: 'road-highlight',
-                       
-                    }).addTo(map);
-
-                    // Centrer la carte sur la voie
-                     // map.fitBounds(voieLayer.getBounds(), {
-                         // padding: [20, 20]
-                      //});
-            })
-        .catch(err => {
-            console.error("Erreur chargement voie :", err);
-        });
-
-        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(map);
-
-        var googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            maxZoom: 19,
-            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            attribution: '&copy; <a href="https://www.google.com/intl/en/permissions/geoguidelines/">Google Maps</a>'
-        });
-
-        // Contrôle des couches
-        var layerControl = L.Control.extend({
-            onAdd: function(map) {
-                var container = L.DomUtil.create('div', 'leaflet-control-custom');
-                var button = L.DomUtil.create('button', '', container);
-                button.innerHTML = '<i class="ri-map-2-fill"></i>';
-                var menu = L.DomUtil.create('div', 'layer-menu', container);
-                menu.innerHTML = `
-                    <button class="layer-button" onclick="setLayer('osm')">
-                        <img src="{% static 'image/osm.jpeg' %}" alt="OSM">
-                    </button>
-                    <button class="layer-button" onclick="setLayer('google')">
-                        <img src="{% static 'image/satellite.jpeg' %}" alt="Google">
-                    </button>
-                `;
-                L.DomEvent.on(button, 'click', function(e) {
-                    e.stopPropagation();
-                    container.classList.toggle('active');
-                });
-                map.on('click', function() {
-                    container.classList.remove('active');
-                });
-                return container;
-            }
-        });
-        map.addControl(new layerControl({ position: 'bottomleft' }));
-
-        function setLayer(layer) {
-            if (layer === 'osm') {
-                map.removeLayer(googleSatellite);
-                map.addLayer(osmLayer);
-            } else {
-                map.removeLayer(osmLayer);
-                map.addLayer(googleSatellite);
-            }
-        }
-
         // NOUVEAU BOUTON - Rediriger vers street views
         var customButton = L.Control.extend({
             onAdd: function(map) {
@@ -1295,151 +1233,8 @@
             }
         });
         map.addControl(new customButton({ position: 'bottomleft' }));
-
-    // Taille de l'icône CSS
-var iconWidth = 10; // Largeur de l'icône
-var iconHeight = 16; // Hauteur de l'icône
-
-// Marqueur avec icône personnalisée
-var marker = L.marker([y, x], {
-    icon: L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        iconSize: [iconWidth, iconHeight],  // Appliquer la taille CSS à l'icône
-        iconAnchor: [iconWidth / 2, iconHeight], // Centrer l'icône sur le marqueur
-        popupAnchor: [0, -iconHeight],
-        shadowSize: [41, 41],
-        className: 'small-marker'  // nom de ta classe CSS personnalisée
-    })
-}).addTo(map);
-
-// Ajuster le rayon du cercle pour qu'il soit légèrement plus grand que l'icône
-var circleRadius = Math.max(iconWidth, iconHeight) / 2 + 5;  // Rayon du cercle basé sur la taille de l'icône
-
-// Cercle autour du marqueur
-var circle = L.circle([y, x], {
-    radius: circleRadius,  // Rayon ajusté
-    color: '#cc0000',
-    weight: 1,
-    fillColor: '#ff0000',
-    fillOpacity: 0.3
-}).addTo(map);
-
-        
-
-        // Contrôle de localisation
-        var locateControl = L.Control.extend({
-            onAdd: function(map) {
-                var container = L.DomUtil.create('div', 'leaflet-control-custom');
-                var button = L.DomUtil.create('button', '', container);
-                button.innerHTML = '<i class="ri-focus-3-fill"></i>';
-                L.DomEvent.on(button, 'click', function() {
-                    map.setView([y, x], staticZoom, { animate: true });
-                });
-                return container;
-            }
-        });
-        map.addControl(new locateControl({ position: 'topright' }));
-
-        // Fonctions de partage
-        function generateGoogleMapsUrl() {
-            return `https://www.google.com/maps?q=${y},${x}`;
-        }
-
-        function shareOnWhatsApp() {
-            const googleMapsUrl = generateGoogleMapsUrl();
-            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
-        }
-
-        function shareOnInstagram() {
-            const googleMapsUrl = generateGoogleMapsUrl();
-            copyToClipboard(googleMapsUrl);
-            alert("Lien Google Maps copié dans le presse-papiers ! Collez-le dans Instagram.");
-        }
-
-        function shareOnFacebook() {
-            const googleMapsUrl = generateGoogleMapsUrl();
-            const shareText = `📍 Voici ma position sur Google Maps`;
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(googleMapsUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
-        }
-
-        function shareViaEmail() {
-            const googleMapsUrl = generateGoogleMapsUrl();
-            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
-            window.location.href = `mailto:?subject=Ma position&body=${encodeURIComponent(shareText)}`;
-        }
-
-        function shareViaSMS() {
-            const googleMapsUrl = generateGoogleMapsUrl();
-            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
-            window.location.href = `sms:?body=${encodeURIComponent(shareText)}`;
-        }
-
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                console.log('Copied to clipboard');
-            }).catch(err => {
-                console.error('Could not copy text: ', err);
-            });
-        }
-
-        // Gestion du menu de partage
-        function toggleShareMenu() {
-            const shareMenu = document.getElementById('shareMenu');
-            const shareOverlay = document.getElementById('shareOverlay');
-            const shareCards = document.querySelectorAll('.share-card');
-
-            if (shareMenu.classList.contains('active')) {
-                closeShareMenu();
-            } else {
-                openShareMenu();
-            }
-        }
-
-        function openShareMenu() {
-            const shareMenu = document.getElementById('shareMenu');
-            const shareOverlay = document.getElementById('shareOverlay');
-            const shareCards = document.querySelectorAll('.share-card');
-
-            shareMenu.classList.add('active');
-            shareOverlay.classList.add('active');
-
-            shareCards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0) scale(1)';
-                }, index * 100);
-            });
-        }
-
-        function closeShareMenu() {
-            const shareMenu = document.getElementById('shareMenu');
-            const shareOverlay = document.getElementById('shareOverlay');
-            const shareCards = document.querySelectorAll('.share-card');
-
-            shareCards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(20px) scale(0.8)';
-                }, index * 50);
-            });
-
-            setTimeout(() => {
-                shareMenu.classList.remove('active');
-                shareOverlay.classList.remove('active');
-            }, shareCards.length * 50);
-        }
-
-        document.addEventListener('click', function(e) {
-            const shareMenu = document.getElementById('shareMenu');
-            const mapShareBtn = document.querySelector('.map-share-btn');
-
-            if (!shareMenu.contains(e.target) && !mapShareBtn.contains(e.target)) {
-                closeShareMenu();
-            }
-        });
     </script>
+    {% endcomment %}
 
     <script>
             document.getElementById('suggestionForm').addEventListener('submit', function(e) {
@@ -1567,8 +1362,6 @@ var circle = L.circle([y, x], {
         }
     }
 
- 
-
     // Fermer avec la touche Échap
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -1582,6 +1375,407 @@ var circle = L.circle([y, x], {
             // Ne rien faire - empêche la fermeture
         }
     });
+</script> 
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    // --- VARIABLES GLOBALES ---
+    // Récupération des coordonnées depuis Django
+    var x = parseFloat("{{ x|escapejs }}");
+    var y = parseFloat("{{ y|escapejs }}");
+    var staticZoom = 18;
+
+    // Variables pour Street View
+    let streetViewData = [];
+    let currentIndex = 0;
+    let pannellumViewer = null;
+    let currentStreetMarker = null; // Marqueur spécifique street view sur la carte
+
+    // Configuration UTM / WGS84
+    const UTM_PROJECTION = "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs";
+    const WGS84 = "EPSG:4326";
+
+    const ZONES = [
+        { name: 'Z1', geojson: '/static/street_views/geojson/Z1.geojson', parentFolder: 'http://10.128.3.27/views/Z1/panoramas_hd/' },
+        { name: 'Z2', geojson: '/static/street_views/geojson/Z2.geojson', parentFolder: 'http://10.128.3.27/views/Z2/panoramas_hd/' },
+        { name: 'Z3', geojson: '/static/street_views/geojson/Z3.geojson', parentFolder: 'http://10.128.3.27/views/Z3/panoramas_hd/' },
+        { name: 'Z4', geojson: '/static/street_views/geojson/Z4.geojson', parentFolder: 'http://10.128.3.27/views/Z4/panoramas_hd/' },
+        { name: 'Z5', geojson: '/static/street_views/geojson/Z5.geojson', parentFolder: 'http://10.128.3.27/views/Z5/panoramas_hd/' }
+    ];
+
+    // --- INITIALISATION DE LA CARTE ---
+    if (isNaN(x) || isNaN(y)) {
+        console.error("Les coordonnées sont invalides :", x, y);
+        x = 5.316667;
+        y = -4.033333;
+    }
+
+    var map = L.map('map').setView([y, x], staticZoom);
+
+    // Fond de carte OSM
+    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    var googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 19,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '© Google Maps'
+    });
+
+
+    // chargement de la voie
+    fetch("/voie/{{ voie.id_voies }}/geojson/")
+        .then(response => response.json())
+        .then(data => {
+            L.geoJSON(data, { className: 'road-highlight' }).addTo(map);
+        })
+        .catch(err => console.error("Erreur chargement voie :", err));
+
+
+    // Marqueur de destination (Panneau)
+    var iconWidth = 10;
+    var iconHeight = 16;
+    L.marker([y, x], {
+        icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+            iconSize: [iconWidth, iconHeight],
+            iconAnchor: [iconWidth / 2, iconHeight],
+            popupAnchor: [0, -iconHeight],
+            shadowSize: [41, 41],
+            className: 'small-marker'
+        })
+    }).addTo(map);
+
+
+    // Cercle autour du marqueur
+    L.circle([y, x], {
+        radius: Math.max(iconWidth, iconHeight) / 2 + 5,
+        color: '#cc0000',
+        weight: 1,
+        fillColor: '#ff0000',
+        fillOpacity: 0.3
+    }).addTo(map);
+
+
+
+
+    //LOGIQUE STREET VIEW
+
+    // Conversion coordonnées
+    function convertCoordinates(x, y) {
+        if (typeof proj4 !== 'undefined') {
+            const [lon, lat] = proj4(UTM_PROJECTION, WGS84, [x, y]);
+            return { lat, lon };
+        }
+        return { lat: 0, lon: 0 };
+    }
+
+    // Chargement des données GeoJSON
+    async function loadStreetViewData() {
+        try {
+            const allDataPromises = ZONES.map(async (zone) => {
+                const response = await fetch(zone.geojson);
+                if (!response.ok) return [];
+                const data = await response.json();
+                
+                return data.features.map((feature) => {
+                    const subFolder = feature.properties['CHEMIN'];
+                    if (!subFolder) return null;
+
+                    const utmX = feature.geometry.coordinates[0];
+                    const utmY = feature.geometry.coordinates[1];
+                    const { lat, lon } = convertCoordinates(utmX, utmY);
+
+                    return {
+                        id: feature.properties.nom_image,
+                        lat: lat,
+                        lon: lon,
+                        heading: feature.properties.HEADING || 0,
+                        pitch: feature.properties.PITCH || 0,
+                        roll: feature.properties.ROLL || 0,
+                        zoneName: zone.name,
+                        imagePathBase: zone.parentFolder + subFolder
+                    };
+                }).filter(p => p !== null);
+            });
+
+            const results = await Promise.all(allDataPromises);
+            streetViewData = results.flat();
+            streetViewData.forEach((point, i) => point.index = i);
+            //console.log(`${streetViewData.length} points Street View chargés.`);
+
+        } catch (error) {
+            console.error("Erreur chargement Street View:", error);
+        }
+    }
+
+    // Lance le chargement des données en arrière-plan
+    loadStreetViewData();
+
+    // Trouver le point le plus proche
+    function findClosestPointIndex(targetLat, targetLon) {
+        let minDistance = Infinity;
+        let closestIndex = -1;
+
+        streetViewData.forEach((point, index) => {
+            const dist = Math.sqrt(Math.pow(point.lat - targetLat, 2) + Math.pow(point.lon - targetLon, 2));
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestIndex = index;
+            }
+        });
+        return closestIndex;
+    }
+
+    // 4. Afficher le Panorama
+    function loadPoint(index) {
+        if (index < 0 || index >= streetViewData.length) return;
+
+        currentIndex = index;
+        const point = streetViewData[currentIndex];
+
+        // Afficher le modal
+        const modal = document.getElementById('modal-viewer-window');
+        modal.style.display = 'block';
+        document.getElementById('current-point-id').textContent = `Street Views`;
+
+        const imageURL = point.imagePathBase + point.id;
+
+        pannellumViewer = pannellum.viewer('pannellum-viewer', {
+            "type": "equirectangular",
+            "panorama": imageURL,
+            "yaw": 0,
+            "pitch": 0,
+            "northOffset": point.heading || 0,
+            "horizonPitch": point.pitch || 0,
+            "autoLoad": true,
+            "showZoom": false,
+            "compass": true
+        });
+
+        // Optionnel: Centrer la carte sur le point Street View
+        // map.setView([point.lat, point.lon], 18);
+    }
+
+
+
+    // Type de carte
+    var layerControl = L.Control.extend({
+        onAdd: function(map) {
+            var container = L.DomUtil.create('div', 'leaflet-control-custom');
+            var button = L.DomUtil.create('button', '', container);
+            button.innerHTML = '<i class="ri-map-2-fill"></i>';
+
+
+             var menu = L.DomUtil.create('div', 'layer-menu', container);
+                menu.innerHTML = `
+                    <button class="layer-button" onclick="setLayer('osm')">
+                        <img src="{% static 'image/osm.jpeg' %}" alt="OSM">
+                    </button>
+                    <button class="layer-button" onclick="setLayer('google')">
+                        <img src="{% static 'image/satellite.jpeg' %}" alt="Google">
+                    </button>
+                `;
+            L.DomEvent.on(button, 'click', function(e) {
+                e.stopPropagation();
+                container.classList.toggle('active');
+            });
+            return container;
+        }
+    });
+    map.addControl(new layerControl({ position: 'bottomleft' }));
+
+    function setLayer(layer) {
+        if (layer === 'osm') { map.removeLayer(googleSatellite); map.addLayer(osmLayer); } 
+        else { map.removeLayer(osmLayer); map.addLayer(googleSatellite); }
+    }
+
+
+    // Boutton street views
+    var streetViewBtn = L.Control.extend({
+        onAdd: function(map) {
+            var container = L.DomUtil.create('div', 'leaflet-control-custom');
+            var button = L.DomUtil.create('button', '', container);
+            button.innerHTML = '<i class="fa-solid fa-street-view"></i>';
+            button.title = "Ouvrir Street View";
+
+            L.DomEvent.on(button, 'click', function(e) {
+                e.stopPropagation();
+
+                if (streetViewData.length === 0) {
+                    alert("Les données Street View chargent encore, veuillez patienter...");
+                    return;
+                }
+
+                // x = longitude, y = latitude
+                const closestIndex = findClosestPointIndex(y, x);
+
+                if (closestIndex !== -1) {
+                    loadPoint(closestIndex);
+                } else {
+                    alert("Aucune image Street View trouvée à proximité.");
+                }
+            });
+            return container;
+        }
+    });
+    map.addControl(new streetViewBtn({ position: 'bottomleft' }));
+
+    
+    // Fermeture du modal
+    document.getElementById('close-button').addEventListener('click', () => {
+        document.getElementById('modal-viewer-window').style.display = 'none';
+        if(currentStreetMarker) map.removeLayer(currentStreetMarker);
+    });
+
+
+    // Navigation
+    document.getElementById('forward-button').addEventListener('click', () => loadPoint(currentIndex + 1));
+    document.getElementById('backward-button').addEventListener('click', () => loadPoint(currentIndex - 1));
+    document.getElementById('turn-left-button').addEventListener('click', () => {
+        if(pannellumViewer) pannellumViewer.setYaw(pannellumViewer.getYaw() - 30, 500);
+    });
+    document.getElementById('turn-right-button').addEventListener('click', () => {
+        if(pannellumViewer) pannellumViewer.setYaw(pannellumViewer.getYaw() + 30, 500);
+    });
+
+    // Draggable Modal
+    function makeDraggable(element, header) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        header.onmousedown = dragMouseDown;
+        function dragMouseDown(e) {
+            e = e || window.event; e.preventDefault();
+            pos3 = e.clientX; pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+        }
+        function elementDrag(e) {
+            e = e || window.event; e.preventDefault();
+            pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
+            pos3 = e.clientX; pos4 = e.clientY;
+            element.style.top = (element.offsetTop - pos2) + "px";
+            element.style.left = (element.offsetLeft - pos1) + "px";
+        }
+        function closeDragElement() {
+            document.onmouseup = null; document.onmousemove = null;
+        }
+    }
+    
+    makeDraggable(document.getElementById('modal-viewer-window'), document.getElementById('modal-header'));
+
+     // Fonctions de partage
+        function generateGoogleMapsUrl() {
+            return `https://www.google.com/maps?q=${y},${x}`;
+        }
+
+        function shareOnWhatsApp() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
+        }
+
+        function shareOnInstagram() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            copyToClipboard(googleMapsUrl);
+            alert("Lien Google Maps copié dans le presse-papiers ! Collez-le dans Instagram.");
+        }
+
+        function shareOnFacebook() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps`;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(googleMapsUrl)}&quote=${encodeURIComponent(shareText)}`, '_blank');
+        }
+
+        function shareViaEmail() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
+            window.location.href = `mailto:?subject=Ma position&body=${encodeURIComponent(shareText)}`;
+        }
+
+        function shareViaSMS() {
+            const googleMapsUrl = generateGoogleMapsUrl();
+            const shareText = `📍 Voici ma position sur Google Maps : ${googleMapsUrl}`;
+            window.location.href = `sms:?body=${encodeURIComponent(shareText)}`;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('Copied to clipboard');
+            }).catch(err => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        // Gestion du menu de partage
+        function toggleShareMenu() {
+            const shareMenu = document.getElementById('shareMenu');
+            const shareOverlay = document.getElementById('shareOverlay');
+            const shareCards = document.querySelectorAll('.share-card');
+
+            if (shareMenu.classList.contains('active')) {
+                closeShareMenu();
+            } else {
+                openShareMenu();
+            }
+        }
+
+        function openShareMenu() {
+            const shareMenu = document.getElementById('shareMenu');
+            const shareOverlay = document.getElementById('shareOverlay');
+            const shareCards = document.querySelectorAll('.share-card');
+
+            shareMenu.classList.add('active');
+            shareOverlay.classList.add('active');
+
+            shareCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0) scale(1)';
+                }, index * 100);
+            });
+        }
+
+        function closeShareMenu() {
+            const shareMenu = document.getElementById('shareMenu');
+            const shareOverlay = document.getElementById('shareOverlay');
+            const shareCards = document.querySelectorAll('.share-card');
+
+            shareCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px) scale(0.8)';
+                }, index * 50);
+            });
+
+            setTimeout(() => {
+                shareMenu.classList.remove('active');
+                shareOverlay.classList.remove('active');
+            }, shareCards.length * 50);
+        }
+
+        document.addEventListener('click', function(e) {
+            const shareMenu = document.getElementById('shareMenu');
+            const mapShareBtn = document.querySelector('.map-share-btn');
+
+            if (!shareMenu.contains(e.target) && !mapShareBtn.contains(e.target)) {
+                closeShareMenu();
+            }
+        });
 </script>
+
+
 </body>
 </html>
