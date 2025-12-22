@@ -2,14 +2,14 @@ let streetViewData = [];
 
 // Index du point dans le tableau 'streetViewData' qui est actuellement affiché
 let currentIndex = 0;
-// L'objet carte Leaflet
-let map;
-// Le marqueur spécial qui indique la position actuelle sur la carte
-let currentMarker;
-// VARIABLE GLOBALE pour le visualiseur Pannellum (360°)
-let pannellumViewer = null;
 
-// --- DÉFINITION DE LA PROJECTION CORRIGÉE (UTM zone 30N vers WGS84) ---
+let map;
+
+let currentMarker; //la position actuelle sur la carte
+
+let pannellumViewer = null; // VARIABLE GLOBALE pour le visualiseur Pannellum (360°)
+
+// UTM zone 30N vers WGS84
 const UTM_PROJECTION = "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs";
 const WGS84 = "EPSG:4326";
 
@@ -23,24 +23,25 @@ function convertCoordinates(x, y) {
     return { lat: 0, lon: 0 };
 }
 
-// --- CONFIGURATION : DÉFINITION DES ZONES ET LEURS CHEMINS FIXES ---
 const ZONES = [
-    { name: 'Z1', geojson: '/static/street_views/geojson/Z1.geojson', parentFolder: '/static/views/Z1/panoramas_hd/' },
+    { name: 'Z1', geojson: '/static/street_views/geojson/Z1.geojson', parentFolder: 'http://10.128.3.27/views/Z1/panoramas_hd/' },
     { name: 'Z2', geojson: '/static/street_views/geojson/Z2.geojson', parentFolder: 'http://10.128.3.27/views/Z2/panoramas_hd/' },
     { name: 'Z3', geojson: '/static/street_views/geojson/Z3.geojson', parentFolder: 'http://10.128.3.27/views/Z3/panoramas_hd/' },
     { name: 'Z4', geojson: '/static/street_views/geojson/Z4.geojson', parentFolder: 'http://10.128.3.27/views/Z4/panoramas_hd/' },
     { name: 'Z5', geojson: '/static/street_views/geojson/Z5.geojson', parentFolder: 'http://10.128.3.27/views/Z5/panoramas_hd/' }
 ];
 
-// --- ICONE POUR LA POSITION ACTUELLE (Point rouge) ---
+
+// Position actuelle
 const currentPosIcon = L.divIcon({
     className: 'current-pos-marker',
-    html: '<div style="background-color: red; border: 2px solid white; width: 10px; height: 10px; border-radius: 50%;"></div>',
+    html: '<div style="background-color: red; border: 4px solid white; width: 10px; height: 10px; border-radius: 50%;"></div>',
     iconSize: [14, 14],
     iconAnchor: [7, 7]
 });
 
-// --- FONCTION DE GESTION DU DÉPLACEMENT DE LA FENÊTRE (Draggable) ---
+
+// fonction de deplacelent fenetre
 function makeDraggable(element, header) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
@@ -80,17 +81,17 @@ function makeDraggable(element, header) {
     }
 }
 
-// --- FONCTION D'INITIALISATION DE LA CARTE ---
+// Initialisation de la carte
 function initMap() {
     const firstPoint = streetViewData[0];
     map = L.map('map').setView([firstPoint.lat, firstPoint.lon], 16);
 
-    // FOND DE CARTE OSM
+    // OSM
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: "© OpenStreetMap"
     }).addTo(map);
 
-    // AFFICHAGE DES POINTS
+    // affichage des points
     streetViewData.forEach((point, index) => {
         L.circleMarker([point.lat, point.lon], {
             radius: 3,
@@ -106,7 +107,7 @@ function initMap() {
     });
 }
 
-// --- FONCTION DE CHARGEMENT D'UN POINT (Ouvre/Met à Jour la Fenêtre Modale) ---
+// chargement d'un point (Ouvre/Met à Jour la Fenêtre Modale) ---
 function loadPoint(index) {
     if (index < 0 || index >= streetViewData.length) {
         console.warn(`Index invalide: ${index} (min: 0, max: ${streetViewData.length - 1})`);
@@ -212,7 +213,7 @@ function findClosestPointIndex(targetLat, targetLon) {
     return closestIndex;
 }
 
-//FONCTION PRINCIPALE : DÉMARRAGE DE L'APPLICATION (Charge les 5 GeoJSON) ---
+
 async function main() {
     try {
         // console.log('Démarrage de l\'application...');
@@ -283,21 +284,23 @@ async function main() {
 
                 let targetLat, targetLon;
 
+                targetLon = valX;
+                targetLat = valY;
+
                 // DETECTION : Si valX est entre -180 et 180, ce sont des DEGRÉS (WGS84)
-                if (Math.abs(valX) <= 180) {
-                    console.log("Mode Degrés détecté (GPS)");
-                    targetLon = valX;
-                    targetLat = valY;
-                } else {
-                    // Sinon, on considère que ce sont des MÈTRES (UTM) et on convertit
-                    console.log("Mode Mètres détecté (UTM)");
-                    const converted = convertCoordinates(valX, valY);
-                    targetLat = converted.lat;
-                    targetLon = converted.lon;
-                }
+                // if (Math.abs(valX) <= 180) {
+                //     // console.log("Mode Degrés détecté (GPS)");
+                //     targetLon = valX;
+                //     targetLat = valY;
+                // } else {
+                //     // Sinon, on considère que ce sont des MÈTRES (UTM) et on convertit
+                //     // console.log("Mode Mètres détecté (UTM)");
+                //     const converted = convertCoordinates(valX, valY);
+                //     targetLat = converted.lat;
+                //     targetLon = converted.lon;
+                // }
 
                 // console.log(`Recherche du point le plus proche de : Lat ${targetLat}, Lon ${targetLon}`);
-
                 // Trouver l'index dans le tableau global streetViewData
                 const closestIndex = findClosestPointIndex(targetLat, targetLon);
                 
@@ -333,7 +336,7 @@ async function main() {
             modalWindow.style.display = 'none';
         });
 
-        // BOUTONS DE NAVIGATION
+        // boutton de navigation
         const forwardBtn = document.getElementById('forward-button');
         const backwardBtn = document.getElementById('backward-button');
         const turnLeftBtn = document.getElementById('turn-left-button');
@@ -341,7 +344,7 @@ async function main() {
 
         if (forwardBtn) {
             forwardBtn.addEventListener('click', () => {
-                console.log('⬆️ Bouton Avancer cliqué');
+                // console.log('Bouton Avancer cliqué');
                 navigate(1);
             });
         } else {
@@ -375,10 +378,10 @@ async function main() {
             console.error('turn-right-button non trouvé');
         }
 
-        // RACCOURCIS CLAVIER
+        // mouvement avec clavier
         window.addEventListener('keydown', (event) => {
             if (modalWindow.style.display === 'block') {
-                console.log(`⌨️ Touche pressée: ${event.key}`);
+                // console.log(`Touche pressée: ${event.key}`);
                 switch (event.key) {
                     case 'ArrowUp':
                         navigate(1);
@@ -404,5 +407,4 @@ async function main() {
     }
 }
 
-// Lancement de la fonction principale au chargement du script
 main();
