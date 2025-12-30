@@ -163,10 +163,10 @@ class publicites(models.Model):
     titre = models.CharField(max_length=200, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     
-    # 🖼️ Image principale
+    # Image principale
     image = models.ImageField(upload_to='publicites/images/', blank=True, null=True)
     
-    # 🎥 Vidéo associée
+    # Vidéo associée
     video = models.FileField(upload_to='publicites/videos/', blank=True, null=True)
     
     # Type de média principal (optionnel si tu veux classer)

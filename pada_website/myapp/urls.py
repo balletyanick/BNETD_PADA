@@ -11,7 +11,7 @@ urlpatterns = [
 
     path( 'voie/<int:voie_id>/geojson/', views.voie_geojson,name='voie_geojson'),
 
-
+    path('voie-geojson/<int:voie_id>/', views.voie_geojson, name='voie_geojson'),
 
 
     path('redirect/', views.redirect_view, name='redirect_view'),

@@ -91,6 +91,7 @@ def home_view(request, qr_code):
         'photo_personnalite': voie.get_absolute_photo_url(),
         'has_personnalite_photo': voie.has_personnalite_photo,
         'voie': voie,
+        'voie_id': voie.id_voies,
     }
 
     return render(request, 'home.html', context)

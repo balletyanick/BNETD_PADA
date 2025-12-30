@@ -15,987 +15,25 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     
     <title>panneautage.bnetd.ci</title>
-
- 
-    <style>
-    :root {
-        --primary-color: #0f172a;
-        --secondary-color: #1e293b;
-        --accent-color: #f08f30;
-        --footer-color: #000000;
-        --text-color: #0f172a;
-        --bg-color: #f8fafc;
-        --icon-color: #0F8342;
-        --marker-color: #ff0000;
-    }
-
-    /** Enlever le chargement automatique  */
-    .pnlm-load-box {
-        display: none !important;
-    }
-
-
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        padding-top: 70px;
-        padding-bottom: 30px;
-    }
-
-        #float-street-btn {
-    position: fixed;
-    bottom: 70px;
-    right: 25px;
-    width: 65px;
-    height: 65px;
-    background: #ff6f00;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 32px;
-    text-decoration: none;
-    box-shadow: 0px 6px 15px rgba(0,0,0,0.3);
-    transition: 0.2s;
-}
-
-#float-street-btn:hover {
-    background: #e65100;
-    transform: scale(1.1);
-}
-
-    /* Navbar fixe */
-    .navbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 70px;
-        background-color: white;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start; /* <-- mettre les éléments au début */
-        padding: 0 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-    }
-    
-    .navbar-logo {
-        height: 65px;
-        width: auto;
-        transition: transform 0.3s ease;
-    }
-
-    .second-logo {
-        height: 55px;
-        width: auto;
-        transition: transform 0.3s ease;
-    }
-    
-    .navbar-logo:active {
-        transform: scale(0.95);
-    }
-    
-    /* Ajouter un petit espace entre les deux logos */
-    .navbar-logo + .navbar-logo {
-        margin-left: 3px; /*uste la valeur pour l'espacement */
-    }
-    
-     
-    /* Contenu principal */
-    .main-content {
-        flex: 1;
-        padding: 20px;
-        padding-top: 0;
-    }
-
-    /* Carte */
-    #map {
-        width: 100%;
-        height: 300px;
-        border-radius: 15px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        margin-top: 25px;
-    }
-
-    /* Section informations */
-    .info-section {
-        background-color: white;
-        border-radius: 15px;
-        padding: 15px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-    }
-
-    .info-row {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 15px;
-        margin-top: 8px;
-    }
-
-    .info-group {
-        flex: 1;
-        min-width: 120px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .info-value {
-        flex: 1;
-        display: flex;
-        min-height: 60px; /* Hauteur fixe pour uniformiser */
-    }
-
-    .info-label {
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: var(--accent-color);
-        margin-bottom: 5px;
-    }
-
-    .info-value {
-        font-size: 1rem;
-        padding: 10px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-    }
-
-    .info-value i {
-        margin-right: 10px;
-        color: var(--icon-color);
-    }
-
-    .info-value span {
-        text-align: justify;
-        text-justify: inter-word;
-        letter-spacing: normal;
-        word-spacing: normal;
-    }
-
-    /* Menu de partage */
-    .share-menu {
-        position: fixed;
-        bottom: 80px;
-        right: 20px;
-        display: none;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        z-index: 1001;
-        gap: 10px;
-        background: white;
-        padding: 12px 15px;
-        border-radius: 25px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .share-menu.active {
-        display: flex;
-        animation: fadeInUp 0.3s ease-out;
-    }
-
-    .share-card {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: white;
-        border-radius: 50%;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        cursor: pointer;
-        opacity: 0;
-        transform: translateY(20px) scale(0.8);
-        pointer-events: none;
-        position: relative;
-        overflow: hidden;
-        border: none;
-    }
-
-    .share-menu.active .share-card {
-        pointer-events: auto;
-    }
-
-    .share-card:nth-child(1) { transition-delay: 0.05s; }
-    .share-card:nth-child(2) { transition-delay: 0.1s; }
-    .share-card:nth-child(3) { transition-delay: 0.15s; }
-    .share-card:nth-child(4) { transition-delay: 0.2s; }
-    .share-card:nth-child(5) { transition-delay: 0.25s; }
-
-    .share-card:active {
-        transform: scale(0.9) !important;
-    }
-
-    .share-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255,255,255,0.3);
-        transform: scale(0);
-        border-radius: 50%;
-        transition: transform 0.3s ease;
-    }
-
-    .share-card:active::before {
-        transform: scale(2);
-        opacity: 0;
-    }
-
-    .share-card img {
-        width: 24px;
-        height: 24px;
-        transition: transform 0.2s ease;
-        pointer-events: none;
-    }
-
-    /* Overlay pour le menu de partage */
-    .share-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    .share-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    /* Contrôles de la carte */
-    .leaflet-control-zoom {
-        background: white;
-        border-radius: 4px;
-        padding: 2px;
-        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-    }
-
-    .leaflet-control-zoom a {
-        color: var(--icon-color);
-        width: 24px;
-        height: 24px;
-        line-height: 24px;
-    }
-
-    .leaflet-top, .leaflet-bottom {
-        position: absolute;
-        z-index: 900 !important;
-        pointer-events: none;
-    }
-
-    .map-share-btn {
-        z-index: 900 !important;
-    }
-
-    .leaflet-control-custom {
-        background: white;
-        border-radius: 4px;
-        padding: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-
-    .leaflet-control-custom i {
-        font-size: 1rem;
-        color: var(--icon-color);
-    }
-
-    .layer-menu {
-        position: absolute;
-        bottom: 50px;
-        left: 0;
-        background: white;
-        border-radius: 12px;
-        padding: 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-        display: none;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .leaflet-control-custom.active .layer-menu {
-        display: flex;
-    }
-
-    .layer-button {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        overflow: hidden;
-        border: none;
-        background: none;
-        cursor: pointer;
-        padding: 0;
-    }
-
-    .layer-button img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* Footer */
-    .footer {
-        background-color: var(--footer-color);
-        color: white;
-        text-align: center;
-        padding: 10px;
-        font-size: 0.65rem;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 999;
-        height: auto;
-    }
-
-    .footer-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-    }
-
-    .footer-copyright {
-        margin-top: 8px;
-        color: #f8f9fa;
-    }
-
-    /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Style pour la description avec photo */
-    .description-with-photo {
-        display: flex;
-        gap: 15px;
-        align-items: flex-start;
-    }
-
-    .photo-personnalite-container {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid var(--icon-color);
-        flex-shrink: 0;
-    }
-
-    .photo-personnalite {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center top;
-    }
-
-    .description-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Styles pour la section suggestion */
-    .suggestion-section {
-        background-color: transparent;
-        border-radius: 15px;
-        padding: 0;
-        margin-bottom: 20px;
-        margin-top: 10px;
-    }
-
-    .suggestion-title {
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: var(--accent-color);
-        margin-bottom: 10px;
-    }
-
-    .suggestion-title i {
-        margin-right: 8px;
-        color: var(--icon-color);
-    }
-
-    .suggestion-form {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .suggestion-input-container {
-        position: relative;
-    }
-
-    .suggestion-input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        resize: none;
-        min-height: 80px;
-        font-family: inherit;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-    }
-
-    .suggestion-input:focus {
-        outline: none;
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 2px rgba(240, 143, 48, 0.1);
-        min-height: 100px;
-    }
-
-    .suggestion-submit {
-        background-color: var(--accent-color);
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-        transition: all 0.3s;
-        height: 40px;
-        margin-left: auto;
-        position: absolute;
-        right: 0;
-        bottom: -75px;
-    }
-
-    #probleme-container {
-        text-align:center;
-        margin-top: 35px;
-    }
-
-    #probleme-container a {
-        color: white;
-        background-color: #ff0000;
-        padding: 10px;
-        padding-bottom: 14px;
-        border-radius: 10px;
-        text-decoration:none;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-      
-    .suggestion-input:focus + .suggestion-row .suggestion-submit {
-        bottom: 10px;
-        right: 10px;
-    }
-
-    .feedback-message {
-        margin-top: 10px;
-        font-size: 0.9rem;
-    }
-
-    .feedback-message .success {
-        color: #28a745;
-    }
-
-    .feedback-message .error {
-        color: #dc3545;
-    }
-
-    .feedback-message i {
-        margin-right: 5px;
-    }
-
-    /* Style pour la description avec scroll */
-    .description-scroll {
-        max-height: 4.5em;
-        overflow: hidden;
-        position: relative;
-        transition: max-height 0.3s ease;
-        display: flex;
-        align-items: flex-start;
-    }
-
-    .description-scroll.expanded {
-        max-height: none;
-    }
-
-    .description-scroll::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .description-scroll::-webkit-scrollbar-thumb {
-        background-color: var(--accent-color);
-        border-radius: 2px;
-    }
-
-    /* Style pour le footer avec partenaires */
-    .footer-partners {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 15px; /* Augmentation de l'espace entre les logos */
-        margin-bottom: 50px;
-        flex-wrap: wrap;
-        padding: 0 20px;
-    }
-    .footer-partners img {
-        height: 30px;
-        width: auto;
-        opacity: 0.8;
-        transition: opacity 0.3s;
-    }
-
-    .footer-partners img.partner1 {
-        height: 20px;
-        margin-bottom: 5px;
-    }
-    
-    .footer-partners img.partner2 {
-        height: 20px;
-    }
-    
-    .footer-partners img.partner3 {
-        height: 37px;
-    }
-
-    .footer-partners img.partner4{
-        height: 55px;
-    }
-
-
-    .footer-partners img:hover {
-        opacity: 2;
-    }
-
-    /* Style pour le bouton de partage sur la carte */
-    .map-share-btn {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        z-index: 1000;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background-color: white;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
-    }
-
-    .map-share-btn:hover {
-        transform: scale(1.05);
-        background-color: #f0f0f0;
-    }
-
-    .map-share-btn svg {
-        width: 18px;
-        height: 18px;
-        color: var(--icon-color);
-    }
-
-    /* Marqueur et cercle sur la carte */
-    .leaflet-marker-icon {
-        filter: hue-rotate(0deg) brightness(1.2) saturate(2);
-        height: 36px !important;
-        width: 25px !important;
-    }
-
-
-  /* Style de base de la voie avec effet de profondeur */
-.leaflet-interactive.road-highlight {
-    stroke: #ecf019ff !important;        /* Orange vif plus moderne */
-    stroke-width: 6 !important;        /* Plus épais pour mieux se voir */
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-opacity: 1;
-    filter: drop-shadow(0 2px 4px rgba(225, 108, 19, 0.4));  /* Ombre portée */
-    transition: all 5s ease;         /* Animation fluide */
-}
-
-
-    /* Texte "Voir plus" */
-    .see-more {
-        color: var(--accent-color) !important;
-        cursor: pointer;
-        font-size: 0.9em;
-        margin-top: 4px;
-        display: none;
-        font-weight: bold;
-        text-align: right;
-        align-self: flex-end;
-        margin-left: auto;
-    }
-
-
-
-    /* Popup Publicitaire */
-    .pub-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.4s ease;
-        padding: 20px;
-    }
-
-    .pub-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .pub-container {
-        position: relative;
-        max-width: 600px;
-        width: 100%;
-        background: white;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        transform: scale(0.8);
-        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .pub-overlay.active .pub-container {
-        transform: scale(1);
-    }
-
-    .pub-header {
-        background: linear-gradient(135deg, #f08f30 0%, #e67e22 100%);
-        padding: 15px 20px;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .pub-title {
-        font-size: 18px;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .pub-title i {
-        font-size: 22px;
-    }
-
-    .pub-close {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-    }
-
-    .pub-close:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: rotate(90deg);
-    }
-
-    .pub-content {
-        padding: 0;
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-
-    .pub-media {
-        width: 100%;
-        position: relative;
-        background: #000;
-    }
-
-    .pub-media img,
-    .pub-media video {
-        width: 100%;
-        height: auto;
-        max-height: 60vh;
-        object-fit: contain;
-        display: block;
-    }
-
-    .pub-description {
-        padding: 20px;
-        color: #333;
-        font-size: 15px;
-        line-height: 1.6;
-        background: #f8f9fa;
-    }
-
-    .pub-description h3 {
-        color: #f08f30;
-        font-size: 20px;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
-
-    .pub-footer {
-        padding: 15px 20px;
-        background: white;
-        border-top: 1px solid #e8e9ea;
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .pub-btn {
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: none;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .pub-btn-primary {
-        background: #f08f30;
-        color: white;
-    }
-
-    .pub-btn-primary:hover {
-        background: #e67e22;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(240, 143, 48, 0.3);
-    }
-
-    .pub-btn-secondary {
-        background: white;
-        color: #666;
-        border: 1px solid #e8e9ea;
-    }
-
-    .pub-btn-secondary:hover {
-        background: #f8f9fa;
-        border-color: #f08f30;
-        color: #f08f30;
-    }
-
-    /* Animation du compteur */
-    .pub-timer {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .pub-timer i {
-        font-size: 14px;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .pub-container {
-            max-width: 95%;
-            margin: 10px;
-        }
-
-        .pub-header {
-            padding: 12px 15px;
-        }
-
-        .pub-title {
-            font-size: 16px;
-        }
-
-        .pub-description {
-            padding: 15px;
-            font-size: 14px;
-        }
-
-        .pub-footer {
-            flex-direction: column;
-            padding: 12px 15px;
-        }
-
-        .pub-btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-    
-    }
-    
-
-
-/* Animation de pulsation pour attirer l'attention */
-    @keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.05);
-        }
-    }
-
-    .pub-btn-primary {
-        animation: pulse 2s infinite;
-    }
-
-    .pub-btn-primary:hover {
-        animation: none;
-    }
-
-    /* Adaptation mobile */
-    @media (max-width: 768px) {
-        .info-group {
-            min-width: calc(50% - 8px);
-        }
-        
-        .description-with-photo {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-    
-        .photo-personnalite-container {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--icon-color);
-            flex-shrink: 0;
-            margin: 0 auto;
-        }
-    
-        .description-content {
-            width: 100%;
-        }
-
-        .suggestion-submit {
-            position: relative;
-            bottom: auto;
-            right: auto;
-            margin-top: 10px;
-        }
-
-        .probleme-submit {
-            position: relative;
-            bottom: auto;
-            right: auto;
-            margin-top: 10px;
-        }
-
-        .suggestion-input:focus + .suggestion-row .suggestion-submit {
-            bottom: auto;
-            right: auto;
-        }
-    }
-
-    .small-marker {
-        width: 10px !important;
-        height: 16px !important;
-        background-size: contain !important;
-        background-repeat: no-repeat !important;
-    }
- 
- .g-recaptcha {
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: center;
-}
-
-/* Pour les petits écrans */
-@media (max-width: 480px) {
-    .g-recaptcha {
-        transform: scale(0.85);
-        transform-origin: left top;
-    }
-}
-
- /* Pour les écrans très petits */
-    @media (max-width: 320px) {
-        .g-recaptcha {
-            transform: scale(0.75);
-            transform-origin: left top;
-        }
-    }   
-</style>
-
 
 </head>
 <body>
 
-    <div id="modal-viewer-window" style="display:none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); width: 90%; max-width: 800px; height: 500px; background: white; z-index: 9999; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5); overflow: hidden;">
+    <div id="modal-viewer-window">
         
-        <div id="modal-header" style="padding: 10px; background: #f08f30; color: white; cursor: move; display: flex; justify-content: space-between; align-items: center;">
+        <div id="modal-header">
             <span id="current-point-id" style="font-weight: bold;">Chargement...</span>
-            <button id="close-button" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
+            <button id="close-button" style="">&times;</button>
         </div>
 
         <div id="pannellum-viewer" style="width: 100%; height: calc(100% - 100px);"></div>
 
-        <div style="height: 60px; background: #00002e; display: flex; justify-content: center; align-items: center; gap: 15px;">
+        <div id="boxbu">
             <button id="turn-left-button" style="padding: 5px 10px;"> ↰ </button>
             <button id="backward-button" style="padding: 5px 10px;"> ▼ </button>
             <button id="forward-button" style="padding: 5px 10px;"> ▲ </button>
@@ -1390,6 +428,7 @@
 
 <script>
     // --- VARIABLES GLOBALES ---
+    
     // Récupération des coordonnées depuis Django
     var x = parseFloat("{{ x|escapejs }}");
     var y = parseFloat("{{ y|escapejs }}");
@@ -1400,6 +439,8 @@
     let currentIndex = 0;
     let pannellumViewer = null;
     let currentStreetMarker = null; // Marqueur spécifique street view sur la carte
+
+    let navigationMarker = null; // Marqueur qui suivra la navigation Street View
 
     // Configuration UTM / WGS84
     const UTM_PROJECTION = "+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs";
@@ -1470,9 +511,41 @@
     }).addTo(map);
 
 
+       // Contrôle de localisation
+        var locateControl = L.Control.extend({
+            onAdd: function(map) {
+                var container = L.DomUtil.create('div', 'leaflet-control-custom');
+                var button = L.DomUtil.create('button', '', container);
+                button.innerHTML = '<i class="ri-focus-3-fill"></i>';
+                L.DomEvent.on(button, 'click', function() {
+                    map.setView([y, x], staticZoom, { animate: true });
+                });
+                return container;
+            }
+        });
+        map.addControl(new locateControl({ position: 'topright' }));
+
+
 
 
     //LOGIQUE STREET VIEW
+
+    //Fonction mathématique pour calculer la distance (Haversine)
+    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+        var R = 6371; // Rayon de la terre en km
+        var dLat = deg2rad(lat2-lat1);
+        var dLon = deg2rad(lon2-lon1); 
+        var a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        var d = R * c; // Distance en km
+        return d * 1000; // Distance en mètres
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI/180)
+    }
 
     // Conversion coordonnées
     function convertCoordinates(x, y) {
@@ -1483,45 +556,125 @@
         return { lat: 0, lon: 0 };
     }
 
-    // Chargement des données GeoJSON
-    async function loadStreetViewData() {
-        try {
-            const allDataPromises = ZONES.map(async (zone) => {
-                const response = await fetch(zone.geojson);
-                if (!response.ok) return [];
-                const data = await response.json();
-                
-                return data.features.map((feature) => {
-                    const subFolder = feature.properties['CHEMIN'];
-                    if (!subFolder) return null;
+    // --- CONFIGURATION ---
+const DEBUG_MODE = true; // Mettre à 'false' une fois que tout marche bien
+const MAX_DISTANCE_FROM_LINE = 0.007; // 30 mètres (0.03 km). Essayez 0.025 si c'est trop large.
 
-                    const utmX = feature.geometry.coordinates[0];
-                    const utmY = feature.geometry.coordinates[1];
-                    const { lat, lon } = convertCoordinates(utmX, utmY);
+async function loadStreetViewData() {
+    const voieId = "{{ voie_id }}";
 
-                    return {
-                        id: feature.properties.nom_image,
-                        lat: lat,
-                        lon: lon,
-                        heading: feature.properties.HEADING || 0,
-                        pitch: feature.properties.PITCH || 0,
-                        roll: feature.properties.ROLL || 0,
-                        zoneName: zone.name,
-                        imagePathBase: zone.parentFolder + subFolder
-                    };
-                }).filter(p => p !== null);
-            });
-
-            const results = await Promise.all(allDataPromises);
-            streetViewData = results.flat();
-            streetViewData.forEach((point, i) => point.index = i);
-            //console.log(`${streetViewData.length} points Street View chargés.`);
-
-        } catch (error) {
-            console.error("Erreur chargement Street View:", error);
-        }
+    // Nettoyage des anciens marqueurs de debug si on recharge
+    if (window.debugLayer) {
+        map.removeLayer(window.debugLayer);
     }
+    window.debugLayer = L.layerGroup().addTo(map);
 
+    try {
+        // 1. Charger le tracé de la voie
+        const lineResponse = await fetch(`/voie-geojson/${voieId}/`);
+        if (!lineResponse.ok) throw new Error("Erreur chargement voie");
+        const lineGeoJSON = await lineResponse.json();
+        const roadGeometry = lineGeoJSON.geometry;
+
+        // 2. Charger les points Street View
+        const allDataPromises = ZONES.map(async (zone) => {
+            const response = await fetch(zone.geojson);
+            if (!response.ok) return [];
+            const data = await response.json();
+            
+            return data.features.map((feature) => {
+                const subFolder = feature.properties['CHEMIN'];
+                if (!subFolder) return null;
+
+                const { lat, lon } = convertCoordinates(feature.geometry.coordinates[0], feature.geometry.coordinates[1]);
+                const pt = turf.point([lon, lat]);
+
+                // --- CALCUL DE DISTANCE ROBUSTE (MultiLineString) ---
+                let distance = Infinity;
+
+                if (roadGeometry.type === 'LineString') {
+                    const line = turf.lineString(roadGeometry.coordinates);
+                    distance = turf.pointToLineDistance(pt, line);
+                } else if (roadGeometry.type === 'MultiLineString') {
+                    // On teste chaque segment de la route pour trouver le plus proche
+                    roadGeometry.coordinates.forEach(segmentCoords => {
+                        const segmentLine = turf.lineString(segmentCoords);
+                        const d = turf.pointToLineDistance(pt, segmentLine);
+                        if (d < distance) distance = d;
+                    });
+                }
+
+                // FILTRAGE (déjà existant : charge uniquement les points sur la voie)
+                if (distance > MAX_DISTANCE_FROM_LINE) return null;
+
+                // --- VISUALISATION DEBUG (seulement verts, car filtré) ---
+                if (DEBUG_MODE) {
+                    const color = 'green'; // Toujours vert, car filtré
+                    L.circleMarker([lat, lon], {
+                        radius: 2,
+                        color: color,
+                        fillColor: color,
+                        fillOpacity: 0.8
+                    }).bindPopup(`Dist: ${(distance*1000).toFixed(1)}m`).addTo(window.debugLayer);
+                }
+
+                return {
+                    id: feature.properties.nom_image,
+                    lat: lat, lon: lon,
+                    heading: feature.properties.HEADING || 0,
+                    pitch: feature.properties.PITCH || 0,
+                    imagePathBase: zone.parentFolder + subFolder,
+                    sortKey: feature.properties.nom_image  // Gardé si besoin, mais plus utilisé pour sort
+                };
+            }).filter(p => p !== null);
+        });
+
+        const results = await Promise.all(allDataPromises);
+        streetViewData = results.flat();
+
+        // --- NOUVEAU : Calculer la position le long de la voie pour un tri séquentiel ---
+        if (roadGeometry.type === 'LineString') {
+            const line = turf.lineString(roadGeometry.coordinates);
+            streetViewData.forEach(point => {
+                const pt = turf.point([point.lon, point.lat]);
+                const snapped = turf.nearestPointOnLine(line, pt);
+                point.alongDistance = snapped.properties.location;  // Distance le long de la ligne depuis le début
+            });
+        } else if (roadGeometry.type === 'MultiLineString') {
+            const segments = roadGeometry.coordinates.map(coords => turf.lineString(coords));
+            const segmentLengths = segments.map(seg => turf.length(seg));
+            
+            streetViewData.forEach(point => {
+                const pt = turf.point([point.lon, point.lat]);
+                let minDist = Infinity;
+                let selectedLocation = 0;
+                let selectedCumulative = 0;
+                
+                segments.forEach((seg, segIdx) => {
+                    const snapped = turf.nearestPointOnLine(seg, pt);
+                    if (snapped.properties.dist < minDist) {
+                        minDist = snapped.properties.dist;
+                        selectedLocation = snapped.properties.location;
+                        selectedCumulative = segmentLengths.slice(0, segIdx).reduce((a, b) => a + b, 0);
+                    }
+                });
+                
+                point.alongDistance = selectedCumulative + selectedLocation;
+            });
+        }
+
+        // --- NOUVEAU : Tri par position le long de la voie (remplace le tri par nom) ---
+        streetViewData.sort((a, b) => a.alongDistance - b.alongDistance);
+
+        // Assignation des indices après tri
+        streetViewData.forEach((point, i) => point.index = i);
+        
+        console.log(`✅ ${streetViewData.length} images chargées sur la voie (Tolérance: ${MAX_DISTANCE_FROM_LINE * 1000}m)`);
+
+    } catch (error) {
+        console.error("Erreur logique:", error);
+    }
+}
     // Lance le chargement des données en arrière-plan
     loadStreetViewData();
 
@@ -1568,6 +721,24 @@
 
         // Optionnel: Centrer la carte sur le point Street View
         // map.setView([point.lat, point.lon], 18);
+
+        // --- MISE À JOUR DU MARQUEUR SUR LA CARTE ---
+    if (navigationMarker) {
+        // Si le marqueur existe déjà, on le déplace
+        navigationMarker.setLatLng([point.lat, point.lon]);
+    } else {
+        // Sinon, on le crée (en bleu pour le différencier du panneau rouge)
+        navigationMarker = L.marker([point.lat, point.lon], {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map);
+    }
+    // Optionnel : centrer la carte sur le nouveau point pour mieux voir
+    map.panTo([point.lat, point.lon]);
     }
 
 
@@ -1616,18 +787,23 @@
                 e.stopPropagation();
 
                 if (streetViewData.length === 0) {
-                    alert("Les données Street View chargent encore, veuillez patienter...");
+                    alert("Aucune donnée Street View à proximité.");
                     return;
                 }
 
-                // x = longitude, y = latitude
-                const closestIndex = findClosestPointIndex(y, x);
+                // On cherche l'index du point le plus proche de la balise (x, y)
+                let minTextDist = Infinity;
+                let indexToLoad = 0;
 
-                if (closestIndex !== -1) {
-                    loadPoint(closestIndex);
-                } else {
-                    alert("Aucune image Street View trouvée à proximité.");
-                }
+                streetViewData.forEach((p, idx) => {
+                    let d = getDistanceFromLatLonInKm(y, x, p.lat, p.lon);
+                    if (d < minTextDist) {
+                        minTextDist = d;
+                        indexToLoad = idx;
+                    }
+                });
+
+                loadPoint(indexToLoad);
             });
             return container;
         }
@@ -1639,6 +815,12 @@
     document.getElementById('close-button').addEventListener('click', () => {
         document.getElementById('modal-viewer-window').style.display = 'none';
         if(currentStreetMarker) map.removeLayer(currentStreetMarker);
+        
+        // --- AJOUT : Supprimer le marqueur bleu aussi ---
+        if(navigationMarker) {
+            map.removeLayer(navigationMarker);
+            navigationMarker = null; 
+        }
     });
 
 
