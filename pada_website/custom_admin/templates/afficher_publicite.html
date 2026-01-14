@@ -154,7 +154,7 @@
                     <div class="row table-header">
                       
 
-                        <div class="col-2">
+                        <div class="col-3">
                             <div class="table-cell text-center">
                                 Titre
                             </div>
@@ -164,19 +164,31 @@
                                 Description
                             </div>
                         </div>
-                        <div class="col-2">
-                            <div class="table-cell">
-                                Image
-                            </div>
-                        </div>
-
-                        <div class="col-2">
+                        <div class="col-1">
                             <div class="table-cell">
                                 Vidéo
                             </div>
                         </div>
+
+                        <div class="col-1">
+                            <div class="table-cell">
+                                 Bannière
+                            </div>
+                        </div>
+
+                        <div class="col-1">
+                            <div class="table-cell">
+                                 Image
+                            </div>
+                        </div>
+
+                        <div class="col-1">
+                            <div class="table-cell">
+                                Média 
+                            </div>
+                        </div>
                        
-                        <div class="col-2">
+                        <div class="col-1">
                             <div class="table-cell">
                                 Actions
                             </div>
@@ -185,7 +197,7 @@
 
                     <!-- TABLE LIGNE -->
                     <div class="row table-row text-center">
-                        <div class="col-2">
+                        <div class="col-3">
                             <div class="table-cell">
                                     <div class="table-cell text-center">
                                         {{ pub.titre }}
@@ -199,16 +211,14 @@
                             </div>
                         </div>
 
-                        <div class="col-2">
+                        <div class="col-1">
                             <div class="table-cell">
                                 {% if pub.video %}
 
                                     <div class="media-icon video-icon img-thumbnail" onclick="openVideoModal('{{ pub.video.url }}', '{{ pub.titre|escapejs }}')">
                                         <i class="bi bi-play-circle-fill"></i>
                                     </div>
-                             
                                 {% endif %}
-
                                 {% else %}
                                     <p>Aucune publicité enregistrée</p>
                                 {% endif %}
@@ -216,23 +226,37 @@
                         </div>
 
 
-                        <div class="col-2">
+                        <div class="col-1">
                             <div class="table-cell">
-
                                 {% if pub.image %}
-
                                     <div class="media-icon image-icon img-thumbnail" onclick="openImageModal('{{ pub.image.url }}', '{{ pub.titre|escapejs }}')">
                                         <i class="bi bi-image-fill"></i>
                                     </div>
-
                                 {% else %}
                                     <p>Aucune image trouvée</p>
                                 {% endif %}
                             </div>
                         </div>
 
-                        <div class="col-2">
+                        <div class="col-1">
+                            <div class="table-cell">
+                                {% if pub.image %}
+                                    <div class="media-icon image-icon img-thumbnail" onclick="openImageModal('{{ pub.image_pub.url }}', '{{ pub.titre|escapejs }}')">
+                                        <i class="bi bi-image-fill"></i>
+                                    </div>
+                                {% else %}
+                                    <p>Aucune image trouvée</p>
+                                {% endif %}
+                            </div>
+                        </div>
 
+                        <div class="col-1">
+                                <div class="table-cell">
+                                    {{ pub.type_media }}
+                                </div>
+                        </div> 
+
+                         <div class="col-1">
                             <a href="{% url 'edit_publicite' pub.id %}" >
                                 <div class="table-cell">
                                     <button class="action-btn edit-btn">
@@ -240,8 +264,6 @@
                                     </button>
                                 </div>
                             </a>
-                        
-                         
                         </div> 
                     </div>
 

@@ -35,63 +35,59 @@
 
         <div id="boxbu">
             <button id="turn-left-button" style="padding: 5px 10px;"> ↰ </button>
-            <button id="backward-button" style="padding: 5px 10px;"> ▼ </button>
-            <button id="forward-button" style="padding: 5px 10px;"> ▲ </button>
+            <button id="backward-button" style="padding: 5px 10px;"> ▲ </button>
+            <button id="forward-button" style="padding: 5px 10px;"> ▼ </button>
             <button id="turn-right-button" style="padding: 5px 10px;"> ↱ </button>
         </div>
     </div>
 
-    {% if publicite_globale %}
+    {% if publicite_globale and publicite_globale.type_media != "none" %}
         <div class="pub-overlay" id="pubOverlay">
-            <div class="pub-container">
-                <!-- Header -->
-                <div class="pub-header">
-                    <div class="pub-title">
-                        <i class="ri-megaphone-fill"></i>
-                        <span>{{ publicite_globale.titre }}</span>
-                    </div>
-                    <button class="pub-close" onclick="closePubPopup()">
-                        <i class="ri-close-line"></i>
-                    </button>
-                </div>
-
-                <!-- Contenu -->
-                <div class="pub-content">
-                    <!-- Compteur-->
-                    <div class="pub-timer" id="pubTimer" style="display: none;">
-                        <i class="ri-time-line"></i>
-                        <span id="timerCount">5</span>s
+            
+            {% if publicite_globale.type_media == "video" and publicite_globale.video %}
+                <div class="pub-container">
+                    <div class="pub-header">
+                        <div class="pub-title">
+                            <i class="ri-megaphone-fill"></i>
+                            <span>{{ publicite_globale.titre }}</span>
+                        </div>
+                        <button class="pub-close" onclick="closePubPopup()">
+                            <i class="ri-close-line"></i>
+                        </button>
                     </div>
 
-                    <!-- Média-->
-                    <div class="pub-media">
-                        {% if publicite_globale.video %}
+                    <div class="pub-content">
+                        <div class="pub-media">
                             <video id="pubVideo" controls autoplay muted playsinline>
                                 <source src="{{ publicite_globale.video.url }}" type="video/mp4">
                             </video>
-                        {% elif publicite_globale.image %}
-                            <img src="{{ publicite_globale.image.url }}" alt="{{ publicite_globale.titre }}">
+                        </div>
+                        
+                        {% if publicite_globale.description %}
+                        <div class="pub-description">
+                            <h3>{{ publicite_globale.titre }}</h3>
+                            <p>{{ publicite_globale.description }}</p>
+                        </div>
                         {% endif %}
                     </div>
 
-                    <!-- Description -->
-                    {% if publicite_globale.description %}
-                    <div class="pub-description">
-                        <h3>{{ publicite_globale.titre }}</h3>
-                        <p>{{ publicite_globale.description }}</p>
+                    <div class="pub-footer">
+                        <button class="pub-btn pub-btn-primary" onclick="closePubPopup()">
+                            <i class="ri-check-line"></i> J'ai compris
+                        </button>
                     </div>
-                    {% endif %}
                 </div>
 
-                <!-- Footer avec boutons -->
-                <div class="pub-footer">
-                    <button class="pub-btn pub-btn-primary" onclick="closePubPopup()">
-                        <i class="ri-check-line"></i>
-                        J'ai compris
-                    </button>
+            {% elif publicite_globale.type_media == "image" and publicite_globale.image %}
                 
-                </div>
-            </div>
+                <button class="btn-close-fullscreen" onclick="closePubPopup()">&times;</button>
+                
+                <img src="{{ publicite_globale.image_pub.url }}" 
+                     alt="{{ publicite_globale.titre }}" 
+                     class="img-fullscreen-display">
+
+            {% endif %}
+
         </div>
     {% endif %}
 
@@ -235,44 +231,7 @@
             <div>Infoline: 1378</div>
         </div>
     </footer>
-
-    {% comment %} 
-    <script>
-        // NOUVEAU BOUTON - Rediriger vers street views
-        var customButton = L.Control.extend({
-            onAdd: function(map) {
-                var container = L.DomUtil.create('div', 'leaflet-control-custom');
-                var button = L.DomUtil.create('button', '', container);
-                button.innerHTML = '<i class="fa-solid fa-street-view"></i>';
-                
-                L.DomEvent.on(button, 'click', function(e) {
-                    e.stopPropagation();
-
-                    // On utilise les variables globales x et y définies au début du script
-                    // x et y ici correspondent aux valeurs Django {{ x }} et {{ y }}
-                    if (typeof x !== 'undefined' && typeof y !== 'undefined') {
-                        
-                        // Préparation des paramètres (formatage propre)
-                        var targetX = x.toString().replace(',', '.');
-                        var targetY = y.toString().replace(',', '.');
-
-                        console.log("Redirection vers Street View avec :", targetX, targetY);
-
-                        var baseUrl = '{% url "street_home" %}'; 
-                        var finalUrl = baseUrl + '?x=' + targetX + '&y=' + targetY;
-                        
-                        window.open(finalUrl, '_blank');
-                    } else {
-                        alert("Erreur : Coordonnées introuvables.");
-                    }
-                });
-                
-                return container;
-            }
-        });
-        map.addControl(new customButton({ position: 'bottomleft' }));
-    </script>
-    {% endcomment %}
+    
 
     <script>
             document.getElementById('suggestionForm').addEventListener('submit', function(e) {
@@ -447,7 +406,7 @@
     const WGS84 = "EPSG:4326";
 
     const ZONES = [
-        { name: 'Z1', geojson: '/static/street_views/geojson/Z1.geojson', parentFolder: 'http://10.128.3.27/views/Z1/panoramas_hd/' },
+        { name: 'Z1', geojson: '/static/street_views/geojson/Z1.geojson', parentFolder: 'https://panneautage.bnetd.ci/street_views_data/Z1/panoramas_hd/' },
         { name: 'Z2', geojson: '/static/street_views/geojson/Z2.geojson', parentFolder: 'http://10.128.3.27/views/Z2/panoramas_hd/' },
         { name: 'Z3', geojson: '/static/street_views/geojson/Z3.geojson', parentFolder: 'http://10.128.3.27/views/Z3/panoramas_hd/' },
         { name: 'Z4', geojson: '/static/street_views/geojson/Z4.geojson', parentFolder: 'http://10.128.3.27/views/Z4/panoramas_hd/' },
@@ -557,8 +516,8 @@
     }
 
     // --- CONFIGURATION ---
-const DEBUG_MODE = true; // Mettre à 'false' une fois que tout marche bien
-const MAX_DISTANCE_FROM_LINE = 0.007; // 30 mètres (0.03 km). Essayez 0.025 si c'est trop large.
+const DEBUG_MODE = true; 
+const MAX_DISTANCE_FROM_LINE = 0.007; 
 
 async function loadStreetViewData() {
     const voieId = "{{ voie_id }}";
@@ -607,7 +566,7 @@ async function loadStreetViewData() {
                 // FILTRAGE (déjà existant : charge uniquement les points sur la voie)
                 if (distance > MAX_DISTANCE_FROM_LINE) return null;
 
-                // --- VISUALISATION DEBUG (seulement verts, car filtré) ---
+                // --- VISUALISATION DEBUG 
                 if (DEBUG_MODE) {
                     const color = 'green'; // Toujours vert, car filtré
                     L.circleMarker([lat, lon], {
@@ -632,7 +591,7 @@ async function loadStreetViewData() {
         const results = await Promise.all(allDataPromises);
         streetViewData = results.flat();
 
-        // --- NOUVEAU : Calculer la position le long de la voie pour un tri séquentiel ---
+        // Calculer la position le long de la voie pour un tri séquentiel ---
         if (roadGeometry.type === 'LineString') {
             const line = turf.lineString(roadGeometry.coordinates);
             streetViewData.forEach(point => {
@@ -663,13 +622,12 @@ async function loadStreetViewData() {
             });
         }
 
-        // --- NOUVEAU : Tri par position le long de la voie (remplace le tri par nom) ---
+        //Tri par position le long de la voie (remplace le tri par nom) ---
         streetViewData.sort((a, b) => a.alongDistance - b.alongDistance);
 
         // Assignation des indices après tri
         streetViewData.forEach((point, i) => point.index = i);
         
-        console.log(`✅ ${streetViewData.length} images chargées sur la voie (Tolérance: ${MAX_DISTANCE_FROM_LINE * 1000}m)`);
 
     } catch (error) {
         console.error("Erreur logique:", error);
@@ -696,6 +654,18 @@ async function loadStreetViewData() {
     // 4. Afficher le Panorama
     function loadPoint(index) {
         if (index < 0 || index >= streetViewData.length) return;
+
+        // --- CORRECTION MEMOIRE : Nettoyage de l'ancien viewer ---
+        if (pannellumViewer) {
+            try {
+                pannellumViewer.destroy(); // On détruit l'instance WebGL proprement
+            } catch (e) {
+                console.log("Erreur nettoyage viewer:", e);
+                // Fallback si destroy échoue: vider la div manuellement
+                document.getElementById('pannellum-viewer').innerHTML = '';
+            }
+            pannellumViewer = null;
+        }
 
         currentIndex = index;
         const point = streetViewData[currentIndex];
@@ -787,7 +757,7 @@ async function loadStreetViewData() {
                 e.stopPropagation();
 
                 if (streetViewData.length === 0) {
-                    alert("Aucune donnée Street View à proximité.");
+                    alert("Chargement");
                     return;
                 }
 
@@ -814,9 +784,20 @@ async function loadStreetViewData() {
     // Fermeture du modal
     document.getElementById('close-button').addEventListener('click', () => {
         document.getElementById('modal-viewer-window').style.display = 'none';
+        
+        // --- CORRECTION MEMOIRE : Détruire le viewer à la fermeture ---
+        if (pannellumViewer) {
+            try {
+                pannellumViewer.destroy();
+            } catch (e) {
+                document.getElementById('pannellum-viewer').innerHTML = '';
+            }
+            pannellumViewer = null;
+        }
+        // -------------------------------------------------------------
+
         if(currentStreetMarker) map.removeLayer(currentStreetMarker);
         
-        // --- AJOUT : Supprimer le marqueur bleu aussi ---
         if(navigationMarker) {
             map.removeLayer(navigationMarker);
             navigationMarker = null; 
@@ -957,6 +938,32 @@ async function loadStreetViewData() {
             }
         });
 </script>
+
+<script>
+    function closeImagePub() {
+        const overlay = document.getElementById('imagePubOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Bloquer le scroll tant que l’image est affichée
+    document.addEventListener('DOMContentLoaded', function () {
+        const overlay = document.getElementById('imagePubOverlay');
+        if (overlay) {
+            document.body.style.overflow = 'hidden';
+        }
+    });
+
+    // Fermeture avec Échap
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeImagePub();
+        }
+    });
+</script>
+
 
 
 </body>

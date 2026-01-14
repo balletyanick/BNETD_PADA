@@ -8,6 +8,67 @@
         --icon-color: #0F8342;
         --marker-color: #ff0000;
     }
+    
+/* --- CSS POUR LE MODE IMAGE PLEIN ÉCRAN --- */
+
+/* Le bouton X flottant (uniquement pour le mode image) */
+.btn-close-fullscreen {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 3rem; /* Grand X */
+    font-weight: 300;
+    cursor: pointer;
+    z-index: 10002; /* Au-dessus de tout */
+    line-height: 1;
+    opacity: 0.8;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.btn-close-fullscreen:hover {
+    transform: scale(1.1);
+    color: #ff4444; /* Devient rouge au survol */
+    opacity: 1;
+}
+
+/* L'image elle-même */
+.img-fullscreen-display {
+    max-width: 90%;       /* Laisse une marge sur les côtés */
+    max-height: 90vh;     /* Laisse une marge en haut/bas */
+    object-fit: contain;  /* Garde les proportions sans déformer */
+    box-shadow: 0 0 50px rgba(0,0,0,1); /* Ombre portée pour détacher du fond */
+    border-radius: 4px;
+    z-index: 10001;
+}
+
+/* Ajustement mobile pour le bouton X */
+@media (max-width: 768px) {
+    .btn-close-fullscreen {
+        top: 15px;
+        right: 15px;
+        font-size: 2.5rem;
+    }
+
+     #modal-viewer-window {
+        display:none; 
+        position: fixed; 
+        top: 10%; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        width: 90%; 
+        max-width: 800px; 
+        height: 450px !important; 
+        background: white; 
+        z-index: 9999; 
+        border-radius: 8px; 
+        box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+        overflow: hidden;
+    }
+}
+
 
     #modal-viewer-window {
         display:none; 
@@ -43,9 +104,9 @@
     }
 
     /** Enlever le chargement automatique  */
-    .pnlm-load-box {
+    /* .pnlm-load-box {
         display: none !important;
-    }
+    } */
 
 
     * {

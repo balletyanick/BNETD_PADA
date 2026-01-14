@@ -163,16 +163,18 @@ class publicites(models.Model):
     titre = models.CharField(max_length=200, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     
-    # Image principale
+    # Image bannière
     image = models.ImageField(upload_to='publicites/images/', blank=True, null=True)
     
     # Vidéo associée
     video = models.FileField(upload_to='publicites/videos/', blank=True, null=True)
+
+    # Image publicitaire
+    image_pub = models.ImageField(upload_to='publicites/images/',blank=True, null=True)
     
-    # Type de média principal (optionnel si tu veux classer)
+    # Type de média principal 
     type_media = models.CharField(
-        max_length=10,
-        choices=(('image', 'Image'), ('video', 'Vidéo')),
+        choices=(('image', 'Image Publicitaire'), ('video', 'Vidéo'), ('none', 'Aucun')),
         blank=True,
         null=True
     )
@@ -301,3 +303,11 @@ class voirie_panneautage(models.Model):
 
     def __str__(self):
         return f"{self.nom_cnt or 'Sans nom'} - Zone {self.zone}"
+    
+
+    class test(models.Model):
+        nom = models.CharField(max_length=100)
+        valeur = models.IntegerField(null=True, blank=True)
+
+        def __str__(self):
+            return self.nom

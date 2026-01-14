@@ -192,12 +192,15 @@ def edit_publicite(request, id):
 
     if request.method == 'POST':
         pub.titre = request.POST.get('titre')
+        pub.type_media = request.POST.get('type_media')
         pub.description = request.POST.get('description')
 
         if 'image' in request.FILES:
             pub.image = request.FILES['image']
         if 'video' in request.FILES:
             pub.video = request.FILES['video']
+        if 'image_pub' in request.FILES:
+            pub.image_pub = request.FILES['image_pub']
 
         pub.save()
         messages.success(request, "Publicité mise à jour avec succès !")

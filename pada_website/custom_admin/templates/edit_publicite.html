@@ -323,7 +323,10 @@
 
                 <!-- Uploads Grid -->
                 <div class="upload-grid">
+                
                 <input type="hidden" name="id" value="{{ pub.id }}">
+
+                
                     <!-- Upload Vidéo -->
                     <div class="form-group">
                         <label class="form-label">
@@ -341,7 +344,6 @@
                             </div>
                             <div class="upload-info">
                                 Formats supportés: MP4, AVI, MOV<br>
-                                Taille max: 50MB
                             </div>
                         </div>
                         <div class="file-preview" id="videoPreview">
@@ -358,15 +360,15 @@
                         </div>
                     </div>
 
-                    <!-- Upload Image -->
+                    <!-- Upload Image de publicite-->
                     <div class="form-group">
                         <label class="form-label">
                             <i class="bi bi-image"></i>
-                            Image de couverture <span class="required"></span>
+                            Image de publicité <span class="required"></span>
                         </label>
 
                         <div class="upload-zone" id="imageUploadZone">
-                            <input type="file" id="imageInput" name="image" accept="image/*">
+                            <input type="file" id="imageInput" name="image_pub" accept="image/*">
                             <div class="upload-icon" style="background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);">
                                 <i class="bi bi-image"></i>
                             </div>
@@ -375,7 +377,6 @@
                             </div>
                             <div class="upload-info">
                                 Formats supportés: JPG, PNG, WEBP<br>
-                                Taille max: 5MB
                             </div>
                         </div>
                         <div class="file-preview" id="imagePreview">
@@ -391,6 +392,64 @@
                             </button>
                         </div>
                     </div>
+                    
+                </div>
+
+                <!-- Upload bannière -->
+                <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-image"></i>
+                            Image de couverture <span class="required"></span>
+                        </label>
+
+                        <div class="upload-zone" id="imageUploadZone">
+                            <input type="file" id="imageInput" name="image" accept="image/*">
+                            <div class="upload-icon" style="background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            <div class="upload-text">
+                                Glissez-déposez ou <strong>parcourez</strong>
+                            </div>
+                            <div class="upload-info">
+                                Formats supportés: JPG, PNG, WEBP<br>
+                            </div>
+                        </div>
+                        <div class="file-preview" id="imagePreview">
+                            <div class="file-preview-icon" style="background: #e3f2fd; color: #2196f3;">
+                                <i class="bi bi-file-earmark-image"></i>
+                            </div>
+                            <div class="file-preview-details">
+                                <div class="file-preview-name" id="imageFileName">image.jpg</div>
+                                <div class="file-preview-size" id="imageFileSize">0 MB</div>
+                            </div>
+                            <button type="button" class="file-preview-remove" id="imageRemove">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+                </div>
+                
+
+                <!-- Choix du média à afficher -->
+                <div class="form-group">
+                        <label for="type_media" class="form-label">
+                            <i class="bi bi-sliders"></i>
+                            Type de média à afficher
+                        </label>
+
+                        <select class="form-select" id="type_media" name="type_media">
+                            <option value="video" {% if pub.type_media == "video" %}selected{% endif %}>
+                                Vidéo
+                            </option>
+
+                            <option value="image" {% if pub.type_media == "image" %}selected{% endif %}>
+                                Image
+                            </option>
+
+                            <option value="none" {% if pub.type_media == "none" %}selected{% endif %}>
+                                Aucun média
+                            </option>
+                            
+                        </select>
                 </div>
 
                 <!-- Titre -->
